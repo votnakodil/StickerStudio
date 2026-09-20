@@ -16,5 +16,9 @@ export function EditorCanvas() {
     }
   }, [])
 
-  return <canvas ref={canvasRef} />
+  return (
+    <div className="w-full h-full [&_.canvas-container]:!w-full [&_.canvas-container]:!h-full [&_canvas]:!w-full [&_canvas]:!h-full">
+      <canvas ref={canvasRef} />
+    </div>
+  )
 }
