@@ -1,4 +1,4 @@
-import { Canvas, Rect } from 'fabric'
+import { Canvas, IText, Rect } from 'fabric'
 
 export function createStickerCanvas(element: HTMLCanvasElement) {
   const canvas = new Canvas(element, {
@@ -19,8 +19,21 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
     fill: '#0a84ff',
   })
 
-  canvas.add(testObject)
-  canvas.setActiveObject(testObject)
+  const testText = new IText('STICKER STUDIO', {
+    left: 512,
+    top: 180,
+    originX: 'center',
+    originY: 'center',
+    fontSize: 72,
+    fontWeight: 700,
+    fill: '#ffffff',
+    stroke: '#000000',
+    strokeWidth: 6,
+    paintFirst: 'stroke',
+  })
+
+  canvas.add(testObject, testText)
+  canvas.setActiveObject(testText)
 
   return canvas
 }
