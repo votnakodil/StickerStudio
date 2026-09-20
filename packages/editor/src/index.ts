@@ -111,3 +111,34 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
 
   return canvas
 }
+
+export function addStickerText(
+  canvas: Canvas,
+  text = 'NEW TEXT',
+) {
+  const textCount = canvas
+    .getObjects()
+    .filter((object) => object instanceof IText)
+    .length
+
+  const offset = textCount * 28
+
+  const textObject = new IText(text, {
+    left: 512 + offset,
+    top: 512 + offset,
+    originX: 'center',
+    originY: 'center',
+    fontSize: 72,
+    fontWeight: 700,
+    fill: '#ffffff',
+    stroke: '#000000',
+    strokeWidth: 6,
+    paintFirst: 'stroke',
+  })
+
+  canvas.add(textObject)
+  canvas.setActiveObject(textObject)
+  canvas.requestRenderAll()
+
+  return textObject
+}
