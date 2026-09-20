@@ -1,0 +1,15 @@
+{
+  "name": "sticker-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @sticker-studio/web",
+    "build": "npm run build --workspace @sticker-studio/web",
+    "lint": "npm run lint --workspace @sticker-studio/web"
+  }
+}
