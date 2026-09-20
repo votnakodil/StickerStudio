@@ -55,5 +55,59 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
     wheelEvent.stopPropagation()
   })
 
+  let isPanning = false
+  let lastPointerX = 0
+  let lastPointerY = 0
+
+  canvas.on('mouse:down', (event) => {
+    const pointerEvent = event.e as MouseEvent
+
+    if (!pointerEvent.altKey) {
+      return
+    }
+
+    isPanning = true
+    lastPointerX = pointerEvent.clientX
+    lastPointerY = pointerEvent.clientY
+
+    canvas.selection = false
+    canvas.defaultCursor = 'grabbing'
+    canvas.setCursor('grabbing')
+
+    pointerEvent.preventDefault()
+  })
+
+  canvas.on('mouse:move', (event) => {
+    if (!isPanning) {
+      return
+    }
+
+    const pointerEvent = event.e as MouseEvent
+
+    const deltaX = pointerEvent.clientX - lastPointerX
+    const deltaY = pointerEvent.clientY - lastPointerY
+
+    canvas.relativePan(
+      new Point(deltaX, deltaY),
+    )
+
+    lastPointerX = pointerEvent.clientX
+    lastPointerY = pointerEvent.clientY
+
+    pointerEvent.preventDefault()
+  })
+
+  canvas.on('mouse:up', () => {
+    if (!isPanning) {
+      return
+    }
+
+    isPanning = false
+
+    canvas.selection = true
+    canvas.defaultCursor = 'default'
+    canvas.setCursor('default')
+  })
+
   return canvas
 }
