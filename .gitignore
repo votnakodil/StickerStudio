@@ -1,15 +1,33 @@
+# Dependencies
 node_modules
+
+# Build
 dist
 .vite
 coverage
+*.tsbuildinfo
 
+# Caches
+.cache
+.eslintcache
+.turbo
+
+# Environment
 .env
 .env.*
 !.env.example
 
-.DS_Store
+# Tests
+playwright-report
+test-results
+
+# Logs
 *.log
 
+# macOS
+.DS_Store
+
+# Sticker Studio runtime data
 storage
 uploads
 tmp
