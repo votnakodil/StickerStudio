@@ -1,4 +1,4 @@
-import { Canvas, IText, Rect } from 'fabric'
+import { Canvas, IText, Point, Rect } from 'fabric'
 
 export function createStickerCanvas(element: HTMLCanvasElement) {
   const canvas = new Canvas(element, {
@@ -34,6 +34,26 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
 
   canvas.add(testObject, testText)
   canvas.setActiveObject(testText)
+
+  canvas.on('mouse:wheel', (event) => {
+    const wheelEvent = event.e as WheelEvent
+
+    let zoom = canvas.getZoom()
+
+    zoom *= 0.999 ** wheelEvent.deltaY
+    zoom = Math.min(3, Math.max(0.4, zoom))
+
+    canvas.zoomToPoint(
+      new Point(
+        wheelEvent.offsetX,
+        wheelEvent.offsetY,
+      ),
+      zoom,
+    )
+
+    wheelEvent.preventDefault()
+    wheelEvent.stopPropagation()
+  })
 
   return canvas
 }
