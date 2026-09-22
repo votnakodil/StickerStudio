@@ -1,5 +1,31 @@
 import { Canvas, IText, Point, Rect } from 'fabric'
 
+type HistoryEntry = string
+
+export interface StickerCanvas extends Canvas {
+  history: HistoryEntry[]
+  historyIndex: number
+  isRestoringHistory: boolean
+}
+
+function saveHistory(canvas: StickerCanvas) {
+  if (canvas.isRestoringHistory) {
+    return
+  }
+
+  const serialized = JSON.stringify(canvas.toJSON())
+
+  const current = canvas.history[canvas.historyIndex]
+
+  if (serialized === current) {
+    return
+  }
+
+  canvas.history = canvas.history.slice(0, canvas.historyIndex + 1)
+  canvas.history.push(serialized)
+  canvas.historyIndex = canvas.history.length - 1
+}
+
 export function createStickerCanvas(element: HTMLCanvasElement) {
   const canvas = new Canvas(element, {
     width: 1024,
@@ -7,7 +33,11 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
     backgroundColor: 'transparent',
     preserveObjectStacking: true,
     selection: true,
-  })
+  }) as StickerCanvas
+
+  canvas.history = []
+  canvas.historyIndex = -1
+  canvas.isRestoringHistory = false
 
   const testObject = new Rect({
     left: 312,
@@ -34,6 +64,24 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
 
   canvas.add(testObject, testText)
   canvas.setActiveObject(testText)
+
+  canvas.history = [
+    JSON.stringify(canvas.toJSON()),
+  ]
+
+  canvas.historyIndex = 0
+
+  canvas.on('object:added', () => {
+    saveHistory(canvas)
+  })
+
+  canvas.on('object:modified', () => {
+    saveHistory(canvas)
+  })
+
+  canvas.on('object:removed', () => {
+    saveHistory(canvas)
+  })
 
   canvas.on('mouse:wheel', (event) => {
     const wheelEvent = event.e as WheelEvent
@@ -113,7 +161,7 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
 }
 
 export function addStickerText(
-  canvas: Canvas,
+  canvas: StickerCanvas,
   text = 'NEW TEXT',
 ) {
   const textCount = canvas
@@ -141,4 +189,52 @@ export function addStickerText(
   canvas.requestRenderAll()
 
   return textObject
+}
+
+export function deleteSelectedObjects(canvas: StickerCanvas) {
+  const selectedObjects = canvas.getActiveObjects()
+
+  if (selectedObjects.length === 0) {
+    return
+  }
+
+  canvas.discardActiveObject()
+
+  selectedObjects.forEach((object) => {
+    canvas.remove(object)
+  })
+
+  canvas.requestRenderAll()
+}
+
+export async function undo(canvas: StickerCanvas) {
+  if (canvas.historyIndex <= 0) {
+    return
+  }
+
+  canvas.historyIndex -= 1
+  canvas.isRestoringHistory = true
+
+  await canvas.loadFromJSON(
+    JSON.parse(canvas.history[canvas.historyIndex]),
+  )
+
+  canvas.isRestoringHistory = false
+  canvas.requestRenderAll()
+}
+
+export async function redo(canvas: StickerCanvas) {
+  if (canvas.historyIndex >= canvas.history.length - 1) {
+    return
+  }
+
+  canvas.historyIndex += 1
+  canvas.isRestoringHistory = true
+
+  await canvas.loadFromJSON(
+    JSON.parse(canvas.history[canvas.historyIndex]),
+  )
+
+  canvas.isRestoringHistory = false
+  canvas.requestRenderAll()
 }
