@@ -11,5 +11,9 @@
     "dev": "npm run dev --workspace @sticker-studio/web",
     "build": "npm run build --workspace @sticker-studio/web",
     "lint": "npm run lint --workspace @sticker-studio/web"
+  },
+  "allowScripts": {
+    "canvas@3.2.3": true,
+    "fsevents@2.3.3": true
   }
 }

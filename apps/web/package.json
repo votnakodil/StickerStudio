@@ -12,6 +12,7 @@
   "dependencies": {
     "@sticker-studio/editor": "^0.1.0",
     "@sticker-studio/ui": "^0.1.0",
+    "lucide-react": "^1.47.0",
     "motion": "^13.4.0",
     "react": "^19.2.8",
     "react-colorful": "^5.8.1",

@@ -1,5 +1,5 @@
 import { EditorCanvas } from '../components/editor/EditorCanvas'
-import { EditorToolbar } from '../components/editor/EditorToolbar'
+import { CanvasToolbar } from '../components/editor/CanvasToolbar/CanvasToolbar'
 
 export function EditorLab() {
   return (
@@ -9,7 +9,7 @@ export function EditorLab() {
       </div>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-        <EditorToolbar />
+        <CanvasToolbar corner={14} />
       </div>
     </main>
   )

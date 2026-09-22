@@ -2,10 +2,13 @@ import { Canvas, IText, Point, Rect } from 'fabric'
 
 type HistoryEntry = string
 
+export type EditorTool = 'move' | 'hand'
+
 export interface StickerCanvas extends Canvas {
   history: HistoryEntry[]
   historyIndex: number
   isRestoringHistory: boolean
+  editorTool: EditorTool
 }
 
 function saveHistory(canvas: StickerCanvas) {
@@ -14,7 +17,6 @@ function saveHistory(canvas: StickerCanvas) {
   }
 
   const serialized = JSON.stringify(canvas.toJSON())
-
   const current = canvas.history[canvas.historyIndex]
 
   if (serialized === current) {
@@ -38,6 +40,7 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
   canvas.history = []
   canvas.historyIndex = -1
   canvas.isRestoringHistory = false
+  canvas.editorTool = 'move'
 
   const testObject = new Rect({
     left: 312,
@@ -110,7 +113,11 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
   canvas.on('mouse:down', (event) => {
     const pointerEvent = event.e as MouseEvent
 
-    if (!pointerEvent.altKey) {
+    const shouldPan =
+      canvas.editorTool === 'hand' ||
+      pointerEvent.altKey
+
+    if (!shouldPan) {
       return
     }
 
@@ -132,8 +139,11 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
 
     const pointerEvent = event.e as MouseEvent
 
-    const deltaX = pointerEvent.clientX - lastPointerX
-    const deltaY = pointerEvent.clientY - lastPointerY
+    const deltaX =
+      pointerEvent.clientX - lastPointerX
+
+    const deltaY =
+      pointerEvent.clientY - lastPointerY
 
     canvas.relativePan(
       new Point(deltaX, deltaY),
@@ -152,12 +162,41 @@ export function createStickerCanvas(element: HTMLCanvasElement) {
 
     isPanning = false
 
-    canvas.selection = true
-    canvas.defaultCursor = 'default'
-    canvas.setCursor('default')
+    if (canvas.editorTool === 'hand') {
+      canvas.defaultCursor = 'grab'
+      canvas.setCursor('grab')
+    } else {
+      canvas.selection = true
+      canvas.defaultCursor = 'default'
+      canvas.setCursor('default')
+    }
   })
 
   return canvas
+}
+
+export function setEditorTool(
+  canvas: StickerCanvas,
+  tool: EditorTool,
+) {
+  canvas.editorTool = tool
+
+  if (tool === 'hand') {
+    canvas.discardActiveObject()
+    canvas.selection = false
+    canvas.skipTargetFind = true
+    canvas.defaultCursor = 'grab'
+    canvas.hoverCursor = 'grab'
+    canvas.setCursor('grab')
+  } else {
+    canvas.selection = true
+    canvas.skipTargetFind = false
+    canvas.defaultCursor = 'default'
+    canvas.hoverCursor = 'move'
+    canvas.setCursor('default')
+  }
+
+  canvas.requestRenderAll()
 }
 
 export function addStickerText(
@@ -191,8 +230,11 @@ export function addStickerText(
   return textObject
 }
 
-export function deleteSelectedObjects(canvas: StickerCanvas) {
-  const selectedObjects = canvas.getActiveObjects()
+export function deleteSelectedObjects(
+  canvas: StickerCanvas,
+) {
+  const selectedObjects =
+    canvas.getActiveObjects()
 
   if (selectedObjects.length === 0) {
     return
@@ -207,7 +249,9 @@ export function deleteSelectedObjects(canvas: StickerCanvas) {
   canvas.requestRenderAll()
 }
 
-export async function undo(canvas: StickerCanvas) {
+export async function undo(
+  canvas: StickerCanvas,
+) {
   if (canvas.historyIndex <= 0) {
     return
   }
@@ -216,15 +260,22 @@ export async function undo(canvas: StickerCanvas) {
   canvas.isRestoringHistory = true
 
   await canvas.loadFromJSON(
-    JSON.parse(canvas.history[canvas.historyIndex]),
+    JSON.parse(
+      canvas.history[canvas.historyIndex],
+    ),
   )
 
   canvas.isRestoringHistory = false
   canvas.requestRenderAll()
 }
 
-export async function redo(canvas: StickerCanvas) {
-  if (canvas.historyIndex >= canvas.history.length - 1) {
+export async function redo(
+  canvas: StickerCanvas,
+) {
+  if (
+    canvas.historyIndex >=
+    canvas.history.length - 1
+  ) {
     return
   }
 
@@ -232,7 +283,9 @@ export async function redo(canvas: StickerCanvas) {
   canvas.isRestoringHistory = true
 
   await canvas.loadFromJSON(
-    JSON.parse(canvas.history[canvas.historyIndex]),
+    JSON.parse(
+      canvas.history[canvas.historyIndex],
+    ),
   )
 
   canvas.isRestoringHistory = false

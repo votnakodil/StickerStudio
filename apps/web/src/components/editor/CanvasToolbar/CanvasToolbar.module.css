@@ -1,0 +1,290 @@
+.barWell {
+  --bar-slot: 38px;
+  --bar-pad: 6px;
+  --bar-gap: 2px;
+
+  --bar-corner: 14px;
+  --bar-tool-corner: 10px;
+
+  --bar-ink: rgba(255, 255, 255, 0.82);
+  --bar-ink-muted: rgba(255, 255, 255, 0.46);
+
+  --bar-surface: rgba(38, 38, 40, 0.78);
+  --bar-surface-hover: rgba(255, 255, 255, 0.08);
+  --bar-surface-active: rgba(255, 255, 255, 0.14);
+
+  --bar-edge: rgba(255, 255, 255, 0.11);
+  --bar-edge-inner: rgba(255, 255, 255, 0.05);
+
+  --bar-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.34),
+    0 2px 8px rgba(0, 0, 0, 0.22);
+
+  display: inline-flex;
+  padding: 1px;
+  border-radius: calc(var(--bar-corner) + 1px);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.035)
+    );
+
+  box-shadow: var(--bar-shadow);
+}
+
+.barRail {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: var(--bar-gap);
+
+  padding: var(--bar-pad);
+
+  border: 1px solid var(--bar-edge);
+  border-radius: var(--bar-corner);
+
+  background: var(--bar-surface);
+
+  box-shadow:
+    inset 0 1px 0 var(--bar-edge-inner),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+
+  backdrop-filter:
+    blur(24px)
+    saturate(160%);
+
+  -webkit-backdrop-filter:
+    blur(24px)
+    saturate(160%);
+
+  user-select: none;
+}
+
+.barTool {
+  position: relative;
+
+  width: var(--bar-slot);
+  height: var(--bar-slot);
+
+  flex: 0 0 var(--bar-slot);
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--bar-tool-corner);
+
+  color: var(--bar-ink-muted);
+  background: transparent;
+
+  cursor: pointer;
+  outline: none;
+
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.barTool:hover {
+  color: var(--bar-ink);
+  background: var(--bar-surface-hover);
+}
+
+.barTool:active {
+  transform: scale(0.92);
+}
+
+.barTool[data-active="true"] {
+  color: rgba(255, 255, 255, 0.96);
+  background: var(--bar-surface-active);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(255, 255, 255, 0.055);
+}
+
+.barTool:focus-visible {
+  box-shadow:
+    0 0 0 2px
+    rgba(10, 132, 255, 0.8);
+}
+
+.barSlot {
+  position: relative;
+
+  width: var(--bar-slot);
+  height: var(--bar-slot);
+
+  flex: 0 0 var(--bar-slot);
+}
+
+.barNotch {
+  position: absolute;
+  inset: 0;
+}
+
+.barNotch::after {
+  content: "";
+
+  position: absolute;
+
+  right: 4px;
+  bottom: 4px;
+
+  width: 0;
+  height: 0;
+
+  border-left: 5px solid transparent;
+  border-bottom: 5px solid currentColor;
+
+  opacity: 0.4;
+
+  pointer-events: none;
+}
+
+.barNotchTrigger {
+  position: absolute;
+
+  right: 0;
+  bottom: 0;
+
+  width: 16px;
+  height: 16px;
+
+  z-index: 2;
+
+  padding: 0;
+  border: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.barSplit {
+  width: 1px;
+  height: 22px;
+
+  flex: 0 0 1px;
+
+  margin: 0 3px;
+
+  background:
+    rgba(255, 255, 255, 0.09);
+}
+
+.barFlyout {
+  position: absolute;
+
+  left: 50%;
+  bottom: calc(100% + 9px);
+
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  gap: var(--bar-gap);
+
+  padding: var(--bar-pad);
+
+  border: 1px solid var(--bar-edge);
+  border-radius: var(--bar-corner);
+
+  background:
+    rgba(38, 38, 40, 0.94);
+
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  backdrop-filter:
+    blur(26px)
+    saturate(165%);
+
+  -webkit-backdrop-filter:
+    blur(26px)
+    saturate(165%);
+
+  transform:
+    translateX(-50%);
+
+  transform-origin:
+    50%
+    100%;
+
+  animation:
+    barRise
+    180ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+.barFlyout::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: -5px;
+
+  width: 10px;
+  height: 10px;
+
+  border-right:
+    1px solid
+    var(--bar-edge);
+
+  border-bottom:
+    1px solid
+    var(--bar-edge);
+
+  background:
+    rgba(38, 38, 40, 0.94);
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+
+  border-radius: 0 0 2px 0;
+}
+
+@keyframes barRise {
+  from {
+    opacity: 0;
+
+    transform:
+      translateX(-50%)
+      translateY(7px)
+      scale(0.94);
+
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(-50%)
+      translateY(0)
+      scale(1);
+
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barTool {
+    transition-duration: 40ms;
+  }
+
+  .barFlyout {
+    animation-duration: 60ms;
+  }
+}
