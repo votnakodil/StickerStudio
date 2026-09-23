@@ -4,13 +4,13 @@ import {
   type CSSProperties,
 } from 'react'
 import {
-  Hand,
-  MousePointer2,
-  Redo2,
-  Trash2,
-  Type,
-  Undo2,
-} from 'lucide-react'
+  IconArrowUturnLeft,
+  IconArrowUturnRight,
+  IconCursorarrow,
+  IconHandRaised,
+  IconTextformat,
+  IconTrash,
+} from 'symbols-react'
 import {
   addStickerText,
   deleteSelectedObjects,
@@ -174,9 +174,10 @@ export function CanvasToolbar({
             selectTool('move')
           }
         >
-          <MousePointer2
-            size={18}
-            strokeWidth={1.8}
+          <IconCursorarrow
+            width="18"
+            height="18"
+            fill="currentColor"
             aria-hidden="true"
           />
         </button>
@@ -197,9 +198,10 @@ export function CanvasToolbar({
             selectTool('hand')
           }
         >
-          <Hand
-            size={18}
-            strokeWidth={1.8}
+          <IconHandRaised
+            width="18"
+            height="18"
+            fill="currentColor"
             aria-hidden="true"
           />
         </button>
@@ -224,9 +226,10 @@ export function CanvasToolbar({
             selectTool('text')
           }
         >
-          <Type
-            size={18}
-            strokeWidth={1.8}
+          <IconTextformat
+            width="18"
+            height="18"
+            fill="currentColor"
             aria-hidden="true"
           />
         </button>
@@ -242,9 +245,10 @@ export function CanvasToolbar({
           title="Undo"
           onClick={handleUndo}
         >
-          <Undo2
-            size={18}
-            strokeWidth={1.8}
+          <IconArrowUturnLeft
+            width="18"
+            height="18"
+            fill="currentColor"
             aria-hidden="true"
           />
         </button>
@@ -256,9 +260,10 @@ export function CanvasToolbar({
           title="Redo"
           onClick={handleRedo}
         >
-          <Redo2
-            size={18}
-            strokeWidth={1.8}
+          <IconArrowUturnRight
+            width="18"
+            height="18"
+            fill="currentColor"
             aria-hidden="true"
           />
         </button>
@@ -270,9 +275,10 @@ export function CanvasToolbar({
           title="Delete"
           onClick={handleDelete}
         >
-          <Trash2
-            size={18}
-            strokeWidth={1.8}
+          <IconTrash
+            width="18"
+            height="18"
+            fill="currentColor"
             aria-hidden="true"
           />
         </button>
