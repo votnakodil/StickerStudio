@@ -1,0 +1,8 @@
+.step { width: 100%; text-align: center; position: relative; }
+.back { position: absolute; top: -34px; left: 0; padding: 3px 0; border: 0; background: none; color: var(--auth-muted); font: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.step h1 { margin: 0; font-size: clamp(26px, 5vw, 34px); letter-spacing: -.045em; line-height: 1.1; font-weight: 700; }
+.intro { margin: 12px 0 28px; color: var(--auth-muted); font-size: 15px; line-height: 1.5; }
+.intro strong { color: var(--auth-text); font-weight: 600; overflow-wrap: anywhere; }
+.otpInput { align-items: flex-start; text-align: left; }
+.resend { display: block; margin: 20px auto 0; padding: 8px 12px; border: 0; background: none; color: var(--auth-accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.resend:disabled { color: var(--auth-muted); cursor: default; }

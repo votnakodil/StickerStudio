@@ -1,0 +1,8 @@
+.step { width: 100%; text-align: center; }
+.step h1 { margin: 0; font-size: clamp(26px, 5vw, 34px); letter-spacing: -.045em; line-height: 1.1; font-weight: 700; }
+.emailGroup { width: 80%; margin: 32px auto 0; text-align: left; }
+.emailInput { width: 100%; margin: 8px 0 0; text-align: left; }
+.emailLabel { display: block; padding-inline-start: 14px; color: var(--auth-muted); font-size: 15px; font-weight: 400; }
+.emailField { height: 56px; background: var(--auth-field); }
+.slideWrap { margin: 32px auto 0; width: 80%; }
+.domainHint { box-sizing: border-box; margin: 4px 0 0; padding-inline-start: 14px; color: var(--auth-muted); font-size: 12px; text-align: left; }

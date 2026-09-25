@@ -1,0 +1,70 @@
+.stage {
+  position: relative;
+  left: 50%;
+  width: min(calc(100vw - 24px), 680px);
+  height: 390px;
+  transform: translateX(-50%);
+  isolation: isolate;
+}
+
+.card {
+  position: absolute;
+  top: 35px;
+  left: calc(50% - 130px);
+  width: 260px;
+  height: 260px;
+  overflow: hidden;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: 0 22px 48px #0004, 0 4px 11px #0002;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.card picture { display: grid; width: 100%; height: 100%; place-items: center; }
+.card img { display: block; width: 80%; height: 80%; object-fit: contain; user-select: none; }
+
+.card0 {
+  --closed-x: -38px; --open-x: -196px; --overshoot-x: -213px; --recoil-x: -187px;
+  --closed-rotation: -7deg; --open-rotation: -14deg; --overshoot-rotation: -17deg;
+  z-index: 1;
+  animation: spread 950ms 430ms both;
+}
+.card1 {
+  --closed-x: 38px; --open-x: 196px; --overshoot-x: 213px; --recoil-x: 187px;
+  --closed-rotation: 7deg; --open-rotation: 14deg; --overshoot-rotation: 17deg;
+  z-index: 2;
+  animation: spread 950ms 450ms both;
+}
+.card2 { z-index: 3; }
+
+@keyframes spread {
+  0% { transform: translate(var(--closed-x), 6px) rotate(var(--closed-rotation)); }
+  38% { transform: translate(var(--overshoot-x), 22px) rotate(var(--overshoot-rotation)); animation-timing-function: cubic-bezier(.25, .8, .24, 1); }
+  65% { transform: translate(var(--recoil-x), 14px) rotate(var(--open-rotation)); animation-timing-function: cubic-bezier(.25, .8, .24, 1); }
+  84% { transform: translate(var(--open-x), 18px) rotate(var(--open-rotation)); }
+  100% { transform: translate(var(--open-x), 18px) rotate(var(--open-rotation)); }
+}
+
+@media (prefers-color-scheme: dark) { .card { background: #2d2d2d; } }
+
+@media (max-width: 540px) {
+  .stage { height: 318px; }
+  .card { top: 28px; left: calc(50% - 100px); width: 200px; height: 200px; border-radius: 26px; }
+  .card0 { --closed-x: -25px; --open-x: -86px; --overshoot-x: -94px; --recoil-x: -81px; }
+  .card1 { --closed-x: 25px; --open-x: 86px; --overshoot-x: 94px; --recoil-x: 81px; }
+}
+
+@media (max-width: 400px) {
+  .card0 { --open-x: -64px; --overshoot-x: -70px; --recoil-x: -60px; }
+  .card1 { --open-x: 64px; --overshoot-x: 70px; --recoil-x: 60px; }
+}
+
+@media (max-width: 350px) {
+  .card0 { --open-x: -49px; --overshoot-x: -54px; --recoil-x: -46px; }
+  .card1 { --open-x: 49px; --overshoot-x: 54px; --recoil-x: 46px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card0, .card1 { animation: none; transform: translate(var(--open-x), 18px) rotate(var(--open-rotation)); will-change: auto; }
+}

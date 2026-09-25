@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-foreground: var(--auth-text);
+  --color-muted-foreground: var(--auth-muted);
+  --color-border: var(--auth-border);
+  --color-border-strong: var(--auth-border-strong);
+  --color-ring: var(--auth-accent);
+  --color-destructive: #e55656;
+  --color-success: #27bb76;
+}
+
 html,
 body,
 #root {
