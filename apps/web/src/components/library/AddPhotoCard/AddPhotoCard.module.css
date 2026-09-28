@@ -1,0 +1,169 @@
+.wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.wrap:hover, .wrap:focus-within {
+  z-index: 1;
+}
+
+.dropzone {
+  position: relative;
+  display: flex;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  align-items: center;
+  justify-content: center;
+  --dash-color: #c8cbd0;
+  border-radius: 24px;
+  color: #6e7178;
+  cursor: pointer;
+  text-align: center;
+  isolation: isolate;
+}
+
+.dashedBorder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--dash-color);
+  stroke-width: 3px;
+  pointer-events: none;
+  transition: stroke 1.2s ease-in-out;
+}
+
+.dashedBorder path {
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 9px 9px;
+  stroke-dashoffset: -4.5px;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.addIcon {
+  flex: none;
+  color: #8d9097;
+  transition: color .3s ease;
+}
+
+.title {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  color: #6d7076;
+  font-size: clamp(18px, 2vw, 25px);
+  font-weight: 440;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.title > span {
+  display: block;
+}
+
+.types {
+  display: block;
+  max-width: 100%;
+  color: #92959b;
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: .02em;
+  text-align: center;
+}
+
+.filename {
+  overflow: hidden;
+  max-width: 100%;
+  color: #4b5059;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error {
+  margin: 8px 3px 0;
+  color: #b64444;
+  font-size: 12px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.dropzone:hover, .dropzone:focus-visible, .active {
+  --dash-color: #b58de8;
+  --intelligence-glow-opacity: 1;
+  --intelligence-glow-play-state: running;
+}
+
+.dropzone:hover .addIcon, .dropzone:focus-visible .addIcon, .active .addIcon {
+  color: #b58de8;
+}
+
+.reject {
+  --dash-color: #cf7373;
+}
+
+.dropzone:focus-visible {
+  outline: 3px solid #3278f6;
+  outline-offset: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dropzone {
+    --dash-color: #5a5d65;
+  }
+
+  .addIcon {
+    color: #a8abb3;
+  }
+
+  .title {
+    color: #bdc0c6;
+  }
+
+  .types {
+    color: #92969e;
+  }
+
+  .filename {
+    color: #e2e4e8;
+  }
+
+  .dropzone:hover, .dropzone:focus-visible, .active {
+    --dash-color: #be9af0;
+  }
+
+  .reject {
+    --dash-color: #cb7777;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashedBorder {
+    transition: none;
+  }
+
+  .addIcon {
+    transition: none;
+  }
+}

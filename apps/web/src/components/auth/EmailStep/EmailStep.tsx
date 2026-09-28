@@ -21,7 +21,7 @@ export function EmailStep({ email, onEmailChange, onEmailBlur, onInvalidSlide, o
       <TextShimmer as="h1" duration={2.5} repeatDelay={5}>Welcome to Sticker Studio</TextShimmer>
       <div className={styles.emailGroup}>
         <label className={styles.emailLabel} htmlFor="login-email">Your email</label>
-        <p className={styles.domainHint}>Available for @free-lines.ru accounts</p>
+        <p className={styles.domainHint}>*available for @free-lines.ru accounts</p>
         <Input
           id="login-email"
           type="email"

@@ -1,0 +1,68 @@
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: var(--ig-opacity, 1);
+  }
+
+  50% {
+    opacity: calc(var(--ig-opacity, 1) * .45);
+  }
+}
+
+.glow {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  opacity: var(--intelligence-glow-opacity, 0);
+  pointer-events: none;
+  transition: opacity 1.2s ease-in-out;
+}
+
+.layerWrap {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  filter: blur(var(--ig-blur));
+  opacity: var(--ig-opacity, 1);
+}
+
+.breathe {
+  animation: breathe 3.2s ease-in-out infinite;
+}
+
+.ringMask {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
+  padding: var(--ig-thickness);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.layer {
+  position: absolute;
+  inset: -50%;
+  display: block;
+  background: conic-gradient(#bc82f3, #f5b9ea, #8d9fff, #ff6778, #ffba71, #c686ff, #bc82f3);
+  animation: spin 5s linear infinite;
+  animation-play-state: var(--intelligence-glow-play-state, paused);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow, .breathe, .layer {
+    animation: none;
+    transition: none;
+  }
+}

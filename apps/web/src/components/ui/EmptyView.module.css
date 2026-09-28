@@ -1,0 +1,48 @@
+.root {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  color: #717580;
+  text-align: center;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 18px;
+  color: #8b909a;
+}
+
+.title {
+  margin: 0;
+  color: #17191f;
+  font-size: 18px;
+  font-weight: 630;
+  line-height: 1.25;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .root {
+    color: #a0a3ad;
+  }
+
+  .icon {
+    color: #a0a3ad;
+  }
+
+  .title {
+    color: #f7f7f9;
+  }
+}

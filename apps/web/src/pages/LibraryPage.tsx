@@ -1,39 +1,17 @@
-import { useNavigate } from 'react-router-dom'
+import { LibraryTabs } from '../components/library/LibraryTabs/LibraryTabs'
+import { stickers } from '../data/stickers'
+import styles from './LibraryPage.module.css'
 
 export function LibraryPage() {
-  const navigate = useNavigate()
-
   return (
-    <main className="min-h-screen bg-neutral-950 text-white p-8">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="text-3xl font-semibold">
-          Sticker Library
-        </h1>
-
-        <p className="mt-2 text-neutral-400">
-          Choose a sticker or create your own.
-        </p>
-
-        <div className="mt-8 flex gap-4">
-          <button
-            type="button"
-            className="rounded-xl bg-white px-5 py-3 font-medium text-black"
-            onClick={() =>
-              navigate(
-                '/editor/demo',
-              )
-            }
-          >
-            Open demo sticker
-          </button>
-
-          <button
-            type="button"
-            className="rounded-xl bg-neutral-800 px-5 py-3 font-medium text-white"
-          >
-            Create custom sticker
-          </button>
-        </div>
+    <main className={styles.page}>
+      <div className="mx-auto w-full max-w-[88rem] px-5 pb-16 pt-10 sm:px-8 sm:pt-14">
+        <header className="mb-5 sm:mb-6">
+          <p className={styles.eyebrow}>Sticker Studio</p>
+          <h1 className={styles.title}>Choose a sticker</h1>
+          <p className={styles.subtitle}>Choose a sticker made by community, or create your own</p>
+        </header>
+        <LibraryTabs stickers={stickers} />
       </div>
     </main>
   )
