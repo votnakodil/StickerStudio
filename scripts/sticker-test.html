@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sticker Studio · тест VK Teams</title>
+  <style>
+    :root { color-scheme: light; font: 16px/1.45 system-ui, -apple-system, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f6fa; color: #20232b; }
+    main { max-width: 580px; margin: 48px auto; padding: 32px; background: white; border: 1px solid #e2e5eb; border-radius: 20px; box-shadow: 0 12px 40px #1a2a4b0d; }
+    h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -.03em; }
+    h2 { margin: 28px 0 10px; font-size: 20px; }
+    p { margin: 0 0 20px; color: #5d6674; }
+    label { display: block; margin: 16px 0 6px; font-weight: 600; }
+    input, select, button { font: inherit; }
+    input:not([type=file]), select { width: 100%; padding: 11px 12px; border: 1px solid #bac3d0; border-radius: 10px; background: white; }
+    input[type=file] { display: block; width: 100%; padding: 12px; border: 1px dashed #bac3d0; border-radius: 10px; }
+    input:focus, select:focus { outline: 3px solid #d2e1ff; border-color: #376bd1; }
+    button { margin-top: 20px; padding: 11px 18px; color: white; background: #315ec9; border: 0; border-radius: 10px; cursor: pointer; font-weight: 650; }
+    button:disabled { opacity: .55; cursor: wait; }
+    #status { min-height: 24px; margin: 22px 0 0; color: #2057ad; }
+    #status.error { color: #b42318; }
+    #status.success { color: #147146; }
+    .note { margin: 7px 0 0; font-size: 14px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 620px) { main { margin: 0; min-height: 100vh; border: 0; border-radius: 0; padding: 24px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Стикеры VK Teams</h1>
+    <p>Локальная тестовая страница Sticker Studio. Данные входа используются только для текущего запуска сервера.</p>
+
+    <form id="login-form" autocomplete="off">
+      <label for="email">Логин VK Teams</label>
+      <input id="email" name="email" type="email" autocomplete="off" required>
+      <label for="password">Пароль</label>
+      <input id="password" name="password" type="password" autocomplete="off" required>
+      <button id="login-button" type="submit">Войти и показать паки</button>
+    </form>
+
+    <div id="refresh-wrap" hidden>
+      <button id="refresh-button" type="button">Обновить авторские паки через бота</button>
+      <p class="note">Обычный вход использует сохранённый список. Обновление отправит боту запрос списка паков.</p>
+    </div>
+
+    <form id="upload-form" hidden>
+      <h2>Новый стикер</h2>
+      <label for="pack">Мой стикерпак</label>
+      <select id="pack" required></select>
+      <p id="pack-note" class="note"></p>
+      <div id="reference-wrap" hidden>
+        <label for="reference">Ссылка на существующий стикер из этого пака</label>
+        <input id="reference" type="url" placeholder="https://files.myteam.mail.ru/get/…">
+        <p class="note">Боту нужна эта ссылка, чтобы выбрать нужный пак.</p>
+      </div>
+      <label for="file">Картинка с компьютера</label>
+      <input id="file" type="file" accept="image/*" required>
+      <button id="upload-button" type="submit">Добавить стикер</button>
+    </form>
+
+    <form id="create-form" hidden>
+      <h2>Создать стикерпак</h2>
+      <label for="new-pack-name">Название</label>
+      <input id="new-pack-name" type="text" maxlength="64" placeholder="Например, Мои коты" required>
+      <p id="new-pack-preview" class="note">Из названия получится адрес ссылки латиницей.</p>
+      <label for="new-pack-file">Первый стикер</label>
+      <input id="new-pack-file" type="file" accept="image/*" required>
+      <button id="create-button" type="submit">Создать стикерпак</button>
+    </form>
+
+    <p id="status" role="status" aria-live="polite"></p>
+  </main>
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const uploadForm = document.getElementById('upload-form');
+    const loginButton = document.getElementById('login-button');
+    const refreshWrap = document.getElementById('refresh-wrap');
+    const refreshButton = document.getElementById('refresh-button');
+    const uploadButton = document.getElementById('upload-button');
+    const packSelect = document.getElementById('pack');
+    const packNote = document.getElementById('pack-note');
+    const referenceWrap = document.getElementById('reference-wrap');
+    const referenceInput = document.getElementById('reference');
+    const fileInput = document.getElementById('file');
+    const createForm = document.getElementById('create-form');
+    const createButton = document.getElementById('create-button');
+    const newPackName = document.getElementById('new-pack-name');
+    const newPackFile = document.getElementById('new-pack-file');
+    const newPackPreview = document.getElementById('new-pack-preview');
+    const status = document.getElementById('status');
+    let packs = [];
+    let activeEmail = '';
+
+    function cacheKey(email) {
+      return `sticker-studio-owned-packs:${email.toLowerCase()}`;
+    }
+
+    function savedOwnedPacks(email) {
+      try {
+        const value = JSON.parse(localStorage.getItem(cacheKey(email)));
+        return value?.version === 2 && Array.isArray(value.packs)
+          ? value.packs : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveOwnedPacks(email) {
+      if (!email) return;
+      try {
+        localStorage.setItem(cacheKey(email), JSON.stringify({
+          version: 2,
+          packs: packs.map(pack => ({ id: pack.id, slug: pack.slug }))
+        }));
+      } catch {
+        // Недоступное хранилище не мешает текущему сеансу.
+      }
+    }
+
+    function showStatus(message, kind = '') {
+      status.textContent = message;
+      status.className = kind;
+    }
+
+    async function jsonResponse(response) {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Запрос не выполнен.');
+      return data;
+    }
+
+    function updatePack() {
+      const pack = packs.find(item => item.id === packSelect.value);
+      const needsURL = Boolean(pack?.needsStickerURL);
+      referenceWrap.hidden = !needsURL;
+      referenceInput.required = needsURL;
+      referenceInput.value = '';
+      packNote.textContent = needsURL
+        ? 'Для этого пака понадобится ссылка на один уже добавленный в него стикер.'
+        : pack?.installed === false
+          ? 'Пак найден в списке автора у бота. Он будет выбран через Stickers Bot перед загрузкой.'
+          : 'Пак будет выбран через Stickers Bot перед загрузкой.';
+    }
+
+    packSelect.addEventListener('change', updatePack);
+
+    function showPacks(nextPacks) {
+      const selectedId = packSelect.value;
+      packs = nextPacks;
+      packSelect.replaceChildren();
+      for (const pack of packs) {
+        const option = document.createElement('option');
+        option.value = pack.id;
+        option.textContent = pack.stickerCount === null
+          ? pack.name
+          : `${pack.name} (${pack.stickerCount})`;
+        packSelect.append(option);
+      }
+      if (packs.some(pack => pack.id === selectedId)) packSelect.value = selectedId;
+      updatePack();
+      uploadForm.hidden = !packs.length;
+    }
+
+    newPackName.addEventListener('input', () => {
+      newPackPreview.textContent = 'Из названия получится адрес ссылки латиницей.';
+      createButton.disabled = false;
+    });
+
+    newPackName.addEventListener('blur', async () => {
+      const name = newPackName.value.trim();
+      if (!name || createForm.hidden) return;
+      try {
+        const data = await jsonResponse(await fetch('/api/check-name', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        }));
+        if (newPackName.value.trim() !== name) return;
+        newPackPreview.textContent = data.available
+          ? `Адрес свободен: myteam.mail.ru/s/${data.slug}`
+          : `Адрес myteam.mail.ru/s/${data.slug} уже занят. Введите другое название.`;
+        createButton.disabled = !data.available;
+      } catch (error) {
+        if (newPackName.value.trim() === name) newPackPreview.textContent = error.message;
+      }
+    });
+
+    loginForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      loginButton.disabled = true;
+      uploadForm.hidden = true;
+      createForm.hidden = true;
+      refreshWrap.hidden = true;
+      activeEmail = '';
+      showStatus('Подключаемся к VK Workspace и загружаем список паков…');
+      const passwordInput = document.getElementById('password');
+      const email = document.getElementById('email').value.trim();
+      const body = JSON.stringify({
+        email,
+        password: passwordInput.value,
+        ownedPacks: savedOwnedPacks(email)
+      });
+      passwordInput.value = '';
+      try {
+        const data = await jsonResponse(await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body
+        }));
+        activeEmail = email;
+        showPacks(data.packs);
+        saveOwnedPacks(activeEmail);
+        uploadForm.hidden = !packs.length || !data.canUpload;
+        createForm.hidden = !data.canUpload;
+        refreshWrap.hidden = !data.canUpload;
+        const note = data.note || `Найдено авторских паков: ${packs.length}.`;
+        showStatus(packs.length ? note : `${note} Вы можете создать новый пак.`,
+          data.canUpload ? 'success' : 'error');
+      } catch (error) {
+        showStatus(error.message, 'error');
+      } finally {
+        loginButton.disabled = false;
+      }
+    });
+
+    refreshButton.addEventListener('click', async () => {
+      refreshButton.disabled = true;
+      showStatus('Запрашиваем свежий список авторских паков у Stickers Bot…');
+      try {
+        const data = await jsonResponse(await fetch('/api/refresh-packs', {
+          method: 'POST'
+        }));
+        showPacks(data.packs);
+        saveOwnedPacks(activeEmail);
+        showStatus(data.note, 'success');
+      } catch (error) {
+        showStatus(error.message, 'error');
+      } finally {
+        refreshButton.disabled = false;
+      }
+    });
+
+    createForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const file = newPackFile.files?.[0];
+      const name = newPackName.value.trim();
+      if (!file || !name) return;
+      createButton.disabled = true;
+      showStatus('Проверяем адрес и создаём пак через Stickers Bot…');
+      try {
+        const data = await jsonResponse(await fetch('/api/create-pack', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'X-Pack-Name': encodeURIComponent(name),
+            'X-File-Name': encodeURIComponent(file.name)
+          },
+          body: file
+        }));
+        packs.push(data.pack);
+        saveOwnedPacks(activeEmail);
+        const option = document.createElement('option');
+        option.value = data.pack.id;
+        option.textContent = data.pack.stickerCount === null
+          ? data.pack.name
+          : `${data.pack.name} (${data.pack.stickerCount})`;
+        packSelect.append(option);
+        packSelect.value = data.pack.id;
+        updatePack();
+        uploadForm.hidden = false;
+        const link = document.createElement('a');
+        link.href = data.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = data.url;
+        showStatus('Стикерпак создан: ', 'success');
+        status.append(link);
+        newPackName.value = '';
+        newPackFile.value = '';
+        newPackPreview.textContent = 'Из названия получится адрес ссылки латиницей.';
+      } catch (error) {
+        showStatus(error.message, 'error');
+      } finally {
+        createButton.disabled = false;
+      }
+    });
+
+    uploadForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const file = fileInput.files?.[0];
+      if (!file) return;
+      const pack = packs.find(item => item.id === packSelect.value);
+      if (!pack) return;
+      uploadButton.disabled = true;
+      showStatus('Выбираем пак через Stickers Bot и загружаем картинку…');
+      try {
+        const data = await jsonResponse(await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'X-Pack-Id': pack.id,
+            'X-File-Name': encodeURIComponent(file.name),
+            'X-Sticker-Reference': referenceInput.value.trim()
+          },
+          body: file
+        }));
+        if (data.stickerCount !== null) {
+          pack.stickerCount = data.stickerCount;
+          packSelect.selectedOptions[0].textContent = `${pack.name} (${data.stickerCount})`;
+        }
+        showStatus(data.confirmed
+          ? data.stickerCount !== null
+            ? `Стикер добавлен. В паке теперь ${data.stickerCount} стикеров.`
+            : 'Stickers Bot подтвердил добавление стикера.'
+          : 'Файл отправлен боту, но подтверждение не получено. Проверьте пак перед повторной отправкой.',
+          data.confirmed ? 'success' : 'error');
+        if (data.confirmed) fileInput.value = '';
+      } catch (error) {
+        showStatus(`${error.message} Перед повторной отправкой проверьте пак.`, 'error');
+      } finally {
+        uploadButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

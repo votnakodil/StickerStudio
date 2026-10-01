@@ -7,20 +7,27 @@
 
 .list {
   padding: 5px;
+  overflow: hidden;
   background: var(--tabs-surface);
   box-shadow: inset 0 0 0 1px #2021260c;
 }
 
 .trigger {
   color: var(--tabs-idle);
+  cursor: pointer;
 }
 
 .trigger:hover {
   color: var(--tabs-hover);
 }
 
-.trigger [data-tabs-label] {
+.trigger[aria-selected="true"],
+.trigger[aria-selected="true"]:hover {
   color: #fff;
+}
+
+.trigger [data-tabs-label] {
+  display: none;
 }
 
 .indicator {

@@ -1,0 +1,13 @@
+.root { min-width: 0; margin: 0; padding: 0; border: 0; }
+.label { margin-bottom: 12px; padding: 0; color: inherit; font-size: 12px; font-weight: 600; }
+.list { display: flex; align-items: center; justify-content: space-between; gap: 3px; padding: 4px; }
+.item { position: relative; display: inline-flex; flex: none; border-radius: 50%; cursor: pointer; }
+.unavailable { opacity: .4; cursor: not-allowed; }
+.input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+.surface { position: relative; display: flex; width: 25px; height: 25px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.14); border-radius: 50%; background: rgba(255,255,255,.07); }
+.input:focus-visible + .surface { outline: 2px solid #0a84ff; outline-offset: 4px; }
+.ring { position: absolute; inset: -3px; border: 2px solid; border-radius: 50%; pointer-events: none; }
+.dot { width: 15px; height: 15px; border: 1px solid rgba(0,0,0,.08); border-radius: 50%; }
+@media (prefers-color-scheme: light) {
+  .surface { border-color: rgba(54,62,78,.2); background: rgba(54,62,78,.05); }
+}

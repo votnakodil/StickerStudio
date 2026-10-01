@@ -1,7 +1,7 @@
 "use client";
 
 import { IconChevronLeft, IconChevronRight } from "symbols-react";
-import { cancelFrame, frame, motion, MotionConfig, useReducedMotion, type Transition } from "motion/react";
+import { AnimatePresence, cancelFrame, frame, motion, MotionConfig, useReducedMotion, type Transition } from "motion/react";
 import {
   createContext,
   useCallback,
@@ -21,9 +21,12 @@ type Variant = "pill" | "underline" | "segment";
 
 type Ctx = {
   value: string;
+  selected: Set<string>;
+  multiple: boolean;
   setValue: (v: string) => void;
   layoutId: string;
   variant: Variant;
+  motionTransition?: Transition;
 };
 
 const TabsCtx = createContext<Ctx | null>(null);
@@ -45,35 +48,50 @@ export function Tabs({
   defaultValue,
   value,
   onValueChange,
+  multipleValues,
+  onMultipleValueChange,
   variant = "pill",
   children,
   className,
+  motionTransition,
 }: {
   defaultValue?: string;
   value?: string;
   onValueChange?: (v: string) => void;
+  multipleValues?: string[];
+  onMultipleValueChange?: (values: string[]) => void;
   variant?: Variant;
   children: ReactNode;
   className?: string;
+  motionTransition?: Transition;
 }) {
   const [internal, setInternal] = useState(defaultValue ?? "");
   const layoutId = useId();
   const reduce = useReducedMotion();
   const controlled = value !== undefined;
   const current = controlled ? value : internal;
+  const multiple = multipleValues !== undefined;
+  const selected = useMemo(() => new Set(multiple ? multipleValues : [current]), [multiple, multipleValues, current]);
   const setValue = useCallback(
     (v: string) => {
+      if (multiple) {
+        const next = new Set(multipleValues);
+        if (next.has(v)) next.delete(v);
+        else next.add(v);
+        onMultipleValueChange?.(Array.from(next));
+        return;
+      }
       if (!controlled) setInternal(v);
       onValueChange?.(v);
     },
-    [controlled, onValueChange],
+    [controlled, multiple, multipleValues, onMultipleValueChange, onValueChange],
   );
   const contextValue = useMemo(
-    () => ({ value: current, setValue, layoutId, variant }),
-    [current, layoutId, setValue, variant],
+    () => ({ value: current, selected, multiple, setValue, layoutId, variant, motionTransition }),
+    [current, selected, multiple, layoutId, setValue, variant, motionTransition],
   );
   return (
-    <MotionConfig transition={reduce ? { duration: 0 } : transition}>
+    <MotionConfig transition={reduce ? { duration: 0 } : motionTransition ?? transition}>
       <TabsCtx.Provider value={contextValue}>
         <motion.div layoutRoot className={className}>
           {children}
@@ -93,20 +111,32 @@ export function TabsList({
   children,
   className,
   wrapperClassName,
+  indicatorClassName,
   label,
 }: {
   children: ReactNode;
   className?: string;
   wrapperClassName?: string;
+  indicatorClassName?: string;
   label?: string;
 }) {
-  const { variant, value } = useTabs();
+  const { variant, value, selected, multiple, motionTransition } = useTabs();
   const reduce = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const viewportId = useId();
   const [edges, setEdges] = useState({ overflow: false, left: false, right: false });
+  const [indicatorBounds, setIndicatorBounds] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const measuredIndicator = variant !== "underline" && !multiple && !!motionTransition;
+
+  const measureIndicator = useCallback(() => {
+    if (!measuredIndicator) return;
+    const target = listRef.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    if (!target) return;
+    const next = { x: target.parentElement!.offsetLeft, y: target.parentElement!.offsetTop, width: target.offsetWidth, height: target.offsetHeight };
+    setIndicatorBounds((previous) => previous && Object.keys(next).every((key) => previous[key as keyof typeof next] === next[key as keyof typeof next]) ? previous : next);
+  }, [measuredIndicator]);
 
   const measure = useCallback(() => {
     const root = rootRef.current;
@@ -141,7 +171,8 @@ export function TabsList({
     if (!root || !viewport || !list) return;
     const update = () => {
       measure();
-      reveal(list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]'));
+      measureIndicator();
+      reveal(list.querySelector<HTMLElement>('[data-tabs-active="true"]'));
     };
     const observer = new ResizeObserver(update);
     observer.observe(root);
@@ -153,15 +184,16 @@ export function TabsList({
       observer.disconnect();
       viewport.removeEventListener("scroll", measure);
     };
-  }, [measure, reveal]);
+  }, [measure, measureIndicator, reveal]);
 
   useLayoutEffect(() => {
     void children;
     void value;
     void edges.overflow;
     measure();
-    reveal(listRef.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]') ?? null);
-  }, [children, value, edges.overflow, measure, reveal]);
+    measureIndicator();
+    reveal(listRef.current?.querySelector<HTMLElement>('[data-tabs-active="true"]') ?? null);
+  }, [children, value, selected, edges.overflow, measure, measureIndicator, reveal]);
 
   useLayoutEffect(() => {
     if (variant === "underline") return;
@@ -169,8 +201,16 @@ export function TabsList({
     if (!list) return;
     void children;
     const labels = Array.from(list.querySelectorAll<HTMLElement>("[data-tabs-label]"));
+    if (labels.length === 0 || labels.every((label) => getComputedStyle(label).display === "none")) return;
     const indicator = list.querySelector<HTMLElement>("[data-tabs-indicator]");
     const target = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    if (multiple) {
+      labels.forEach((label) => {
+        const ownIndicator = label.closest("button")?.parentElement?.querySelector<HTMLElement>("[data-tabs-indicator]");
+        label.style.clipPath = ownIndicator ? "inset(0)" : "inset(0 100% 0 0)";
+      });
+      return;
+    }
     if (!indicator || !target || target.dataset.tabsValue !== value) {
       for (const label of labels) label.style.clipPath = "inset(0 100% 0 0)";
       return;
@@ -196,7 +236,7 @@ export function TabsList({
     };
     frame.postRender(syncClips, true);
     return () => cancelFrame(syncClips);
-  }, [value, children, variant, reduce]);
+  }, [value, selected, multiple, children, variant, reduce]);
 
   const scroll = (direction: number) => {
     const viewport = viewportRef.current;
@@ -224,7 +264,17 @@ export function TabsList({
           if (event.target instanceof HTMLElement && event.target.getAttribute("role") === "tab") reveal(event.target);
         }}
       >
-        <div ref={listRef} role="tablist" aria-label={label} className={cn(listClasses[variant], "w-max", className)}>
+        <div ref={listRef} role={multiple ? "group" : "tablist"} aria-label={label} className={cn(listClasses[variant], "relative w-max", className)}>
+          {measuredIndicator && indicatorBounds && (
+            <motion.span
+              data-tabs-indicator=""
+              aria-hidden="true"
+              initial={false}
+              animate={{ x: indicatorBounds.x, y: indicatorBounds.y, width: indicatorBounds.width, height: indicatorBounds.height }}
+              transition={reduce ? { duration: 0 } : motionTransition}
+              className={cn("pointer-events-none absolute left-0 top-0 bg-[#0a84ff]", variant === "pill" ? "rounded-full" : "rounded-md", indicatorClassName)}
+            />
+          )}
           {children}
         </div>
       </motion.div>
@@ -248,18 +298,23 @@ export function TabsTrigger({
   children,
   className,
   indicatorClassName,
+  ariaLabel,
+  disabled = false,
 }: {
   value: string;
   children: ReactNode;
   className?: string;
   indicatorClassName?: string;
+  ariaLabel?: string;
+  disabled?: boolean;
 }) {
-  const { value: current, setValue, layoutId, variant } = useTabs();
-  const active = current === value;
+  const { selected, multiple, setValue, layoutId, variant, motionTransition } = useTabs();
+  const reduce = useReducedMotion();
+  const active = selected.has(value);
   const tabId = `${layoutId}-${value}-tab`;
   const panelId = `${layoutId}-${value}-panel`;
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const tabs = Array.from(event.currentTarget.closest('[role="tablist"]')?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []);
+    const tabs = Array.from(event.currentTarget.closest('[role="tablist"], [role="group"]')?.querySelectorAll<HTMLButtonElement>(multiple ? '[data-tabs-value]:not(:disabled)' : '[role="tab"]:not(:disabled)') ?? []);
     if (tabs.length === 0) return;
     const index = tabs.indexOf(event.currentTarget);
     const next = event.key === "ArrowRight" ? (index + 1) % tabs.length
@@ -278,11 +333,16 @@ export function TabsTrigger({
     return (
       <button
         type="button"
-        role="tab"
+        disabled={disabled}
+        role={multiple ? undefined : "tab"}
+        aria-label={ariaLabel}
         id={tabId}
-        aria-controls={panelId}
-        aria-selected={active}
-        tabIndex={active ? 0 : -1}
+        aria-controls={multiple ? undefined : panelId}
+        aria-selected={multiple ? undefined : active}
+        aria-pressed={multiple ? active : undefined}
+        tabIndex={multiple || active ? 0 : -1}
+        data-tabs-value={value}
+        data-tabs-active={active || undefined}
         onKeyDown={handleKeyDown}
         onClick={() => setValue(value)}
         className={cn(
@@ -294,7 +354,7 @@ export function TabsTrigger({
         {children}
         {active ? (
         <motion.span
-          layoutId={layoutId}
+          layoutId={multiple ? `${layoutId}-${value}` : layoutId}
           layout
           className={cn(
             "absolute bottom-0 left-0 right-0 h-px bg-oklch(0.205 0 0) dark:bg-oklch(0.922 0 0)",
@@ -310,31 +370,44 @@ export function TabsTrigger({
 
   return (
     <div className="relative shrink-0">
-      {active ? (
-        <motion.span
-          data-tabs-indicator=""
-          layoutId={layoutId}
-          layout
-          style={{ borderRadius: variant === "pill" ? 9999 : 8 }}
-          className={cn(
-            "absolute inset-0 bg-oklch(0.205 0 0) dark:bg-oklch(0.922 0 0)",
-            radius,
-            indicatorClassName,
-          )}
-        />
-      ) : null}
-      <button
+      <AnimatePresence initial={false}>
+        {active && !(motionTransition && !multiple) ? (
+          <motion.span
+            key="indicator"
+            data-tabs-indicator=""
+            layoutId={multiple ? undefined : layoutId}
+            layout={!multiple}
+            initial={multiple && !reduce ? { scale: 0.72, opacity: 0 } : undefined}
+            animate={multiple ? { scale: 1, opacity: 1 } : undefined}
+            exit={multiple && !reduce ? { scale: 0.72, opacity: 0 } : undefined}
+            transition={multiple ? reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 19, mass: 0.65 } : reduce ? { duration: 0 } : motionTransition}
+            style={{ borderRadius: variant === "pill" ? 9999 : 8 }}
+            className={cn(
+              "absolute inset-0 bg-oklch(0.205 0 0) dark:bg-oklch(0.922 0 0)",
+              radius,
+              indicatorClassName,
+            )}
+          />
+        ) : null}
+      </AnimatePresence>
+      <motion.button
         type="button"
-        role="tab"
+        disabled={disabled}
+        role={multiple ? undefined : "tab"}
+        aria-label={ariaLabel}
         id={tabId}
-        aria-controls={panelId}
-        aria-selected={active}
-        tabIndex={active ? 0 : -1}
+        aria-controls={multiple ? undefined : panelId}
+        aria-selected={multiple ? undefined : active}
+        aria-pressed={multiple ? active : undefined}
+        tabIndex={multiple || active ? 0 : -1}
         onKeyDown={handleKeyDown}
         data-tabs-value={value}
+        data-tabs-active={active || undefined}
         onClick={() => setValue(value)}
+        whileTap={multiple && !reduce ? { scale: 0.93 } : undefined}
+        transition={multiple ? reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 19, mass: 0.65 } : undefined}
         className={cn(
-          "relative z-10 inline-flex items-center justify-center whitespace-nowrap bg-transparent px-3.5 py-1.5 text-sm font-medium outline-none",
+          "relative z-10 inline-flex items-center justify-center whitespace-nowrap bg-transparent px-3.5 py-1.5 text-sm font-medium outline-none disabled:opacity-40 disabled:cursor-default",
           "text-oklch(0.556 0 0) hover:text-oklch(0.145 0 0) dark:text-oklch(0.708 0 0) dark:hover:text-oklch(0.985 0 0)",
           radius,
           className,
@@ -350,7 +423,7 @@ export function TabsTrigger({
         >
           {children}
         </span>
-      </button>
+      </motion.button>
     </div>
   );
 }

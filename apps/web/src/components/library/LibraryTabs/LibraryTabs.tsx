@@ -9,10 +9,12 @@ interface LibraryTabsProps {
   stickers: readonly StickerTemplate[]
 }
 
+const LIBRARY_SPRING = { type: 'spring', stiffness: 330, damping: 24, mass: 0.7 } as const
+
 export function LibraryTabs({ stickers }: LibraryTabsProps) {
   return (
-    <Tabs defaultValue="community" variant="pill" className={styles.tabs}>
-      <TabsList label="Sticker collections" className={styles.list}>
+    <Tabs defaultValue="community" variant="pill" className={styles.tabs} motionTransition={LIBRARY_SPRING}>
+      <TabsList label="Sticker collections" className={styles.list} indicatorClassName={styles.indicator}>
         <TabsTrigger value="community" className={`min-h-11 px-5 ${styles.trigger}`} indicatorClassName={styles.indicator}>Community Library</TabsTrigger>
         <TabsTrigger value="library" className={`min-h-11 px-5 ${styles.trigger}`} indicatorClassName={styles.indicator}>My Library</TabsTrigger>
       </TabsList>

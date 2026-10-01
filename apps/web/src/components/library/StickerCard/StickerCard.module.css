@@ -1,8 +1,16 @@
+.sharedCard {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1;
+  border-radius: 24px;
+}
+
 .card {
   position: relative;
   display: block;
   min-width: 0;
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border: 1px solid #e0e2e6;
   border-radius: 24px;
@@ -13,11 +21,20 @@
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 
+.imageShell {
+  position: absolute;
+  z-index: 1;
+  left: var(--image-left);
+  top: var(--image-top);
+  width: var(--image-size);
+  height: var(--image-size);
+  transition: left .28s ease, top .28s ease, width .28s ease, height .28s ease;
+}
+
 .picture {
   position: absolute;
   inset: 0;
   display: block;
-  overflow: hidden;
 }
 
 .image {
@@ -25,12 +42,32 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: var(--preview-transform);
-  transition: transform .28s ease;
+}
+
+.chrome { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
+
+.blurArtwork {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Retain the composited blur surface after its opacity animation ends. */
+  will-change: opacity;
+  transform: translateZ(0);
 }
 
 .blur {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  bottom: 0;
+  left: 0;
   height: 26%;
+}
+
+.blurTint {
+  will-change: opacity;
+  position: absolute;
+  inset: 0;
   background: linear-gradient(to bottom, transparent 0%, #e9eaed26 38%, #e9eaed9c 100%);
 }
 
@@ -47,6 +84,7 @@
   letter-spacing: -.02em;
   line-height: 1.2;
   pointer-events: none;
+  color: #202126;
 }
 
 .card:hover {
@@ -55,8 +93,11 @@
   box-shadow: 0 12px 30px #18202d18;
 }
 
-.card:hover .image, .card:focus-visible .image {
-  transform: var(--preview-hover-transform);
+.card:hover .imageShell, .card:focus-visible .imageShell {
+  left: var(--image-hover-left);
+  top: var(--image-hover-top);
+  width: var(--image-hover-size);
+  height: var(--image-hover-size);
 }
 
 .card:active {
@@ -75,7 +116,9 @@
     color: #fafafc;
   }
 
-  .blur {
+  .label { color: #fafafc; }
+
+  .blurTint {
     background: linear-gradient(to bottom, transparent 0%, #34363d32 38%, #34363db8 100%);
   }
 
@@ -90,7 +133,7 @@
     transition: none;
   }
 
-  .image {
+  .imageShell {
     transition: none;
   }
 

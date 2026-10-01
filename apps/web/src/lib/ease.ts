@@ -4,6 +4,18 @@ export const EASE_DRAWER = [0.32, 0.72, 0, 1] as const;
 
 export const EASE_OUT_CSS = "cubic-bezier(0.16, 1, 0.3, 1)";
 
+export const SPRING_REVEAL = {
+  type: "spring",
+  stiffness: 420,
+  damping: 18,
+  mass: 0.8,
+} as const;
+
+export const SPRING_EDITOR_REVEAL = {
+  ...SPRING_REVEAL,
+  damping: 21,
+} as const;
+
 export const SPRING_PRESS = {
   type: "spring",
   stiffness: 500,

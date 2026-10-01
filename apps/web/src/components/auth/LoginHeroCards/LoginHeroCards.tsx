@@ -1,12 +1,13 @@
 import { useSyncExternalStore } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import partyMax from '../../../assets/stickers/party_max.png'
+import { SPRING_REVEAL } from '../../../lib/ease'
+import max from '../../../assets/stickers/max.png'
 import sanya from '../../../assets/stickers/sanya.png'
 import anton from '../../../assets/stickers/anton.png'
 import styles from './LoginHeroCards.module.css'
 
 const portraits = [
-  { name: 'Party Max', src: partyMax },
+  { name: 'Max', src: max },
   { name: 'Sanya', src: sanya },
   { name: 'Anton', src: anton },
 ]
@@ -44,7 +45,7 @@ export function LoginHeroCards() {
             initial={isOuterCard && !reduceMotion ? { x: direction * closedX, y: 6, rotate: direction * 7, scale: 0.97 } : false}
             animate={isOuterCard ? { x: direction * openX, y: 18, rotate: direction * 14, scale: 1 } : undefined}
             transition={reduceMotion ? { duration: 0 } : {
-              x: { type: 'spring', stiffness: 420, damping: 18, mass: 0.8, delay },
+              x: { ...SPRING_REVEAL, delay },
               y: { type: 'spring', stiffness: 420, damping: 25, mass: 0.8, delay },
               rotate: { type: 'spring', stiffness: 420, damping: 24, mass: 0.8, delay },
               scale: { type: 'spring', stiffness: 420, damping: 25, mass: 0.8, delay },
