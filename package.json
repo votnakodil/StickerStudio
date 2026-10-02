@@ -9,11 +9,20 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace @sticker-studio/web",
-    "build": "npm run build --workspace @sticker-studio/web",
-    "lint": "npm run lint --workspace @sticker-studio/web"
+    "dev:vk": "node scripts/sticker-test-server.mjs",
+    "build": "npm run check:colors && npm run build --workspace @sticker-studio/web",
+    "lint": "npm run lint --workspace @sticker-studio/web",
+    "check:colors": "node scripts/check-colors.mjs",
+    "test": "node --import ./scripts/register-typescript.mjs --test packages/editor/tests/*.test.mjs apps/web/tests/*.test.mjs scripts/*.test.mjs",
+    "typecheck": "tsc -b apps/web && tsc -p packages/editor/tsconfig.json",
+    "check:architecture": "node scripts/check-architecture.mjs",
+    "check": "npm run check:architecture && npm run typecheck && npm run lint && npm test && npm run build"
   },
   "allowScripts": {
     "canvas@3.2.3": true,
     "fsevents@2.3.3": true
+  },
+  "engines": {
+    "node": ">=24.10.0 <25"
   }
 }

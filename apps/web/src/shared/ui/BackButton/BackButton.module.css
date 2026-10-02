@@ -1,0 +1,9 @@
+.button.button { display: inline-flex; width: 32px; height: 32px; flex: 0 0 32px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 9px; background: transparent; color: var(--palette-focus-blue); text-decoration: none; cursor: pointer; transition: background-color 150ms ease, transform 150ms ease; }
+@media (hover: hover) and (pointer: fine) { .button.button:hover { background: var(--palette-focus-blue-alpha14); } }
+.link:active { transform: scale(.95); }
+.button.button:focus-visible { outline: 2px solid var(--palette-focus-blue); outline-offset: 2px; }
+@media (prefers-color-scheme: light) { .button.button:hover { background: var(--palette-focus-blue-alpha9); } }
+@media (prefers-reduced-motion: reduce) { .button.button { transition: none; } .link:active { transform: none; } }
+
+.circle.circle { width: 40px; height: 40px; flex-basis: 40px; border: 1px solid var(--theme-border); border-radius: 50%; background: var(--theme-surface-muted); color: var(--theme-foreground); }
+@media (hover: hover) and (pointer: fine) { .circle.circle:hover { background: color-mix(in srgb, var(--theme-foreground) 8%, var(--theme-surface-muted)); } }

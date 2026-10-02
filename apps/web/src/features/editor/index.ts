@@ -1,0 +1,5 @@
+export { EditorCanvas } from './components/EditorCanvas/EditorCanvas'
+export { CanvasToolbar } from './components/CanvasToolbar/CanvasToolbar'
+export { LayersPanel } from './components/LayersPanel/LayersPanel'
+export { InspectorPanel } from './components/InspectorPanel/InspectorPanel'
+export { useEditorStore } from './model/editorStore'

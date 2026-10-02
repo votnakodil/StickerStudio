@@ -42,6 +42,12 @@ function sendJson(response, status, data) {
   response.end(JSON.stringify(data));
 }
 
+function failureKind(error, imageMayHaveBeenSent = false) {
+  if (imageMayHaveBeenSent) return 'unknown';
+  return /(?:HTTP|код)\s*(?:401|403)\b|unauthori[sz]ed|auth(?:entication)?\s*(?:failed|required)|password\s+post|ист[её]кш.*сесси|парол[ья]/i
+    .test(error.message) ? 'auth_required' : 'retryable';
+}
+
 async function readBody(request, limit) {
   const chunks = [];
   let size = 0;
@@ -279,7 +285,7 @@ async function confirmPublicPackGrowth(pack, previousCount) {
   return null;
 }
 
-async function startServer(port = 4177) {
+async function startServer(port = 4177, { authenticate = authenticateMessenger } = {}) {
   const page = await readFile(htmlPath);
   const server = http.createServer(async (request, response) => {
     const origin = `http://127.0.0.1:${server.address().port}`;
@@ -303,8 +309,14 @@ async function startServer(port = 4177) {
       response.end(page);
       return;
     }
+    if (request.method === 'GET' && pathname === '/api/session') {
+      sendJson(response, session ? 200 : 401, session
+        ? { packs: session.packs.map(packView), canUpload: Boolean(session.events) }
+        : { kind: 'auth_required', error: 'Сначала войдите в VK Teams.' });
+      return;
+    }
     if (request.method !== 'POST' ||
-        !['/api/login', '/api/upload', '/api/check-name', '/api/create-pack', '/api/refresh-packs'].includes(pathname)) {
+        !['/api/authorize', '/api/login', '/api/upload', '/api/check-name', '/api/create-pack', '/api/refresh-packs', '/api/bot-menu', '/api/prepare-pack'].includes(pathname)) {
       sendJson(response, 404, { error: 'Страница не найдена.' });
       return;
     }
@@ -318,8 +330,10 @@ async function startServer(port = 4177) {
     }
 
     busy = true;
+    let imageMayHaveBeenSent = false;
+    let botActionMayHaveStarted = false;
     try {
-      if (pathname === '/api/login') {
+      if (pathname === '/api/login' || pathname === '/api/authorize') {
         if (request.headers['content-type'] !== 'application/json') {
           sendJson(response, 415, { error: 'Ожидается JSON.' });
           return;
@@ -333,7 +347,18 @@ async function startServer(port = 4177) {
           return;
         }
         session = null;
-        const auth = await authenticateMessenger({ email: email.trim(), password });
+        const auth = await authenticate({ email: email.trim(), password });
+        if (pathname === '/api/authorize') {
+          session = {
+            ...auth,
+            packs: [],
+            events: auth.session.fetchBaseURL
+              ? new MessengerEvents(auth.session.fetchBaseURL, auth.session.aimsid)
+              : null
+          };
+          sendJson(response, 200, { authenticated: true, email: auth.email });
+          return;
+        }
         const result = await requestMyPacks(auth.session.aimsid);
         const allPacks = extractPacks(result.payload);
         let events = null;
@@ -384,14 +409,25 @@ async function startServer(port = 4177) {
       }
 
       if (!session) {
-        sendJson(response, 401, { error: 'Сначала войдите в VK Teams.' });
+        sendJson(response, 401, { kind: 'auth_required', error: 'Сначала войдите в VK Teams.' });
         return;
       }
       if (!session.events) {
         sendJson(response, 409, { error: 'Messenger не вернул адрес событий для Stickers Bot.' });
         return;
       }
+      if (pathname === '/api/bot-menu') {
+        const cached = Boolean(session.events.botMenu);
+        const { message } = await session.events.menu(session.email);
+        const buttons = message.inlineKeyboardMarkup.flat().map(button => ({
+          text: typeof button.text === 'string' ? button.text : button.callbackData,
+          action: button.callbackData
+        })).filter(button => typeof button.action === 'string');
+        sendJson(response, 200, { ready: true, cached, buttons });
+        return;
+      }
       if (pathname === '/api/refresh-packs') {
+        session.pendingPack = null;
         const latest = await requestMyPacks(session.session.aimsid);
         const allPacks = extractPacks(latest.payload);
         const links = await getOwnedPackLinks(
@@ -426,6 +462,29 @@ async function startServer(port = 4177) {
         });
         return;
       }
+      if (pathname === '/api/prepare-pack') {
+        if (request.headers['content-type'] !== 'application/json') {
+          sendJson(response, 415, { error: 'Ожидается JSON.' });
+          return;
+        }
+        const body = JSON.parse((await readBody(request, 4096)).toString('utf8'));
+        const { name, slug } = packNameAndSlug(body?.name);
+        if (session.pendingPack?.name === name && session.pendingPack.slug === slug) {
+          sendJson(response, 200, { ready: true, name, slug });
+          return;
+        }
+        if (await lookupPackSlug(slug)) {
+          sendJson(response, 409, { error: 'Адрес пака уже занят. Выберите другое название.' });
+          return;
+        }
+        const baseline = await requestMyPacks(session.session.aimsid);
+        session.pendingPack = null;
+        botActionMayHaveStarted = true;
+        await startNewPack(session.events, session.session.aimsid, session.email);
+        session.pendingPack = { name, slug, baselineIds: extractPacks(baseline.payload).map(pack => pack.id) };
+        sendJson(response, 200, { ready: true, name, slug });
+        return;
+      }
       if (pathname === '/api/create-pack') {
         let rawName;
         try {
@@ -447,15 +506,19 @@ async function startServer(port = 4177) {
         const filename = safeFilename(request.headers['x-file-name']);
         const bytes = await readBody(request, maxImageBytes);
         if (!bytes.length) throw new Error('Выберите непустой файл.');
-        const baseline = await requestMyPacks(session.session.aimsid);
-        const baselineIds = new Set(extractPacks(baseline.payload).map(pack => pack.id));
+        const prepared = session.pendingPack?.name === name && session.pendingPack.slug === slug
+          ? session.pendingPack : null;
+        const baselineIds = new Set(prepared ? prepared.baselineIds
+          : extractPacks((await requestMyPacks(session.session.aimsid)).payload).map(pack => pack.id));
+        session.pendingPack = null;
         let imageSent = false;
         try {
-          await startNewPack(session.events, session.session.aimsid, session.email);
+          if (!prepared) await startNewPack(session.events, session.session.aimsid, session.email);
           const uploadURL = await initFileUpload(session.session.aimsid, filename, bytes.length);
           const staticURL = await uploadSticker(uploadURL, filename, bytes);
-          await sendBotText(staticURL, session.session.aimsid, session.email);
+          imageMayHaveBeenSent = true;
           imageSent = true;
+          await sendBotText(staticURL, session.session.aimsid, session.email);
           const newPack = await waitForPack(packs => {
             const added = packs.filter(pack => !baselineIds.has(pack.id));
             return added.length === 1 && added[0].referenceURL ? added[0] : null;
@@ -520,17 +583,16 @@ async function startServer(port = 4177) {
       const bytes = await readBody(request, maxImageBytes);
       if (!bytes.length) throw new Error('Выберите непустой файл.');
 
+      // Check the current VK session before any bot action or upload.
+      const baseline = await requestMyPacks(session.session.aimsid);
+      const previousCount = packStickerCount(baseline.payload, pack.id) ?? pack.stickerCount;
+      session.pendingPack = null;
       await choosePack(session.events, session.session.aimsid, session.email, referenceURL);
       const uploadURL = await initFileUpload(session.session.aimsid, filename, bytes.length);
       const staticURL = await uploadSticker(uploadURL, filename, bytes);
 
-      let previousCount = pack.stickerCount;
-      try {
-        const latest = await requestMyPacks(session.session.aimsid);
-        previousCount = packStickerCount(latest.payload, pack.id) ?? previousCount;
-      } catch {
-        // Сохранённое при входе число позволит проверить добавление.
-      }
+      // A network error here may occur after the bot accepted the image.
+      imageMayHaveBeenSent = true;
       await sendBotText(staticURL, session.session.aimsid, session.email);
 
       const stickerCount = pack.installed
@@ -545,9 +607,17 @@ async function startServer(port = 4177) {
         }
       }
       if (stickerCount !== null) pack.stickerCount = stickerCount;
-      sendJson(response, 200, { confirmed, stickerCount });
+      sendJson(response, confirmed ? 200 : 409, {
+        kind: confirmed ? 'confirmed' : 'unknown',
+        confirmed,
+        stickerCount,
+        ...(confirmed ? {} : { error: 'Подтверждение не получено. Проверьте пак перед повторной отправкой.' })
+      });
     } catch (error) {
-      sendJson(response, 400, {
+      const kind = failureKind(error, imageMayHaveBeenSent || botActionMayHaveStarted);
+      if (kind === 'auth_required') session = null;
+      sendJson(response, kind === 'unknown' ? 409 : kind === 'auth_required' ? 401 : 502, {
+        kind,
         error: error instanceof SyntaxError ? 'Некорректный JSON.' : error.message
       });
     } finally {
@@ -572,5 +642,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
 
 export {
   extractPacks, mergeOwnedPacks, packNameAndSlug, lookupPackSlug,
-  resolveOwnedPackIds, startServer
+  resolveOwnedPackIds, failureKind, startServer
 };

@@ -1,0 +1,5 @@
+.button.button { width: 28px; height: 28px; flex: 0 0 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+@media (hover: hover) and (pointer: fine) {
+  .button.button:hover { background: color-mix(in srgb, currentColor 18%, transparent); color: inherit; }
+}
+.button.button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }

@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import "./fonts.css";
+
+@theme inline {
+  --color-primary: var(--action-primary);
+  --color-primary-foreground: var(--action-primary-foreground);
+  --color-card: var(--surface-muted, var(--palette-neutral087));
+  --color-foreground: var(--auth-text, var(--theme-foreground));
+  --color-muted-foreground: var(--auth-muted, var(--theme-text-muted));
+  --color-border: var(--auth-border, var(--theme-border));
+  --color-border-strong: var(--auth-border-strong, var(--theme-border-strong));
+  --color-ring: var(--auth-accent, var(--theme-focus-ring));
+  --color-destructive: var(--action-error);
+  --color-success: var(--action-success);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 100%;
+  height: 100%;
+  margin: 0;
+}

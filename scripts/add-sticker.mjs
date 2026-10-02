@@ -767,6 +767,29 @@ class MessengerEvents {
   constructor(fetchBaseURL, aimsid) {
     this.aimsid = aimsid;
     this.url = eventURL(fetchBaseURL, aimsid);
+    this.botMenu = null;
+    this.botMenuRequest = null;
+    this.botPatchVersion = null;
+  }
+
+  async menu(email) {
+    if (!this.botMenu) {
+      if (!this.botMenuRequest) {
+        this.botMenuRequest = (async () => {
+          await sendBotText('/start', this.aimsid, email);
+          const menu = await this.waitForBot(state => {
+            const message = state.messages?.find(item =>
+              item.msgId && ['packlist', 'addpack', 'changepack'].every(button => botButton(item, button))
+            );
+            return message && typeof state.patchVersion === 'string'
+              ? { message, patchVersion: state.patchVersion } : null;
+          }, 'меню Stickers Bot');
+          this.botMenu = menu;
+        })().finally(() => { this.botMenuRequest = null; });
+      }
+      await this.botMenuRequest;
+    }
+    return { message: this.botMenu.message, patchVersion: this.botPatchVersion ?? this.botMenu.patchVersion };
   }
 
   async next() {
@@ -801,7 +824,14 @@ class MessengerEvents {
       throw new Error(`Messenger events: HTTP ${response.status}, код ${payload?.statusCode ?? 'нет'}.`);
     }
     this.url = eventURL(payload?.data?.fetchBaseURL, this.aimsid);
-    return Array.isArray(payload?.data?.events) ? payload.data.events : [];
+    const events = Array.isArray(payload?.data?.events) ? payload.data.events : [];
+    for (const event of events) {
+      if (event?.type === 'histDlgState' && event.eventData?.sn === botChatId &&
+          typeof event.eventData.patchVersion === 'string') {
+        this.botPatchVersion = event.eventData.patchVersion;
+      }
+    }
+    return events;
   }
 
   async waitForBot(predicate, description, polls = 6) {
@@ -863,11 +893,7 @@ function parseOwnedPackLinks(text) {
 }
 
 async function getOwnedPackLinks(events, aimsid, email) {
-  await sendBotText('/help', aimsid, email);
-  const menu = await events.waitForBot(
-    state => state.messages?.find(message => botButton(message, 'packlist')),
-    'меню со списком своих паков'
-  );
+  const { message: menu } = await events.menu(email);
   await rapiRequest('getBotCallbackAnswer', aimsid, {
     chatId: botChatId,
     msgId: String(menu.msgId),
@@ -884,11 +910,7 @@ async function getOwnedPackLinks(events, aimsid, email) {
 }
 
 async function startNewPack(events, aimsid, email) {
-  await sendBotText('/help', aimsid, email);
-  const menu = await events.waitForBot(
-    state => state.messages?.find(message => botButton(message, 'addpack')),
-    'меню создания пака'
-  );
+  const { message: menu } = await events.menu(email);
   await rapiRequest('getBotCallbackAnswer', aimsid, {
     chatId: botChatId,
     msgId: String(menu.msgId),
@@ -907,16 +929,7 @@ async function startPackEditAction(events, aimsid, email, callbackData, prompt) 
   if (!['packname', 'packlink'].includes(callbackData)) {
     throw new Error('Неизвестное действие Stickers Bot.');
   }
-  await sendBotText('/help', aimsid, email);
-  const menuState = await events.waitForBot(
-    state => {
-      const message = state.messages?.find(item => botButton(item, 'changepack'));
-      return message && typeof state.patchVersion === 'string'
-        ? { message, patchVersion: state.patchVersion }
-        : null;
-    },
-    'меню редактирования пака'
-  );
+  const menuState = await events.menu(email);
   await rapiRequest('getBotCallbackAnswer', aimsid, {
     chatId: botChatId,
     msgId: String(menuState.message.msgId),
@@ -986,16 +999,7 @@ async function requestPackLink(events, aimsid, email, referenceURL, slug) {
 }
 
 async function choosePack(events, aimsid, email, referenceURL) {
-  await sendBotText('/help', aimsid, email);
-  const menuState = await events.waitForBot(
-    state => {
-      const message = state.messages?.find(item => botButton(item, 'changepack'));
-      return message && typeof state.patchVersion === 'string'
-        ? { message, patchVersion: state.patchVersion }
-        : null;
-    },
-    'меню смены пака'
-  );
+  const menuState = await events.menu(email);
   await rapiRequest('getBotCallbackAnswer', aimsid, {
     chatId: botChatId,
     msgId: String(menuState.message.msgId),

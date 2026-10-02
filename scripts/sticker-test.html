@@ -38,9 +38,11 @@
       <label for="password">Пароль</label>
       <input id="password" name="password" type="password" autocomplete="off" required>
       <button id="login-button" type="submit">Войти и показать паки</button>
+      <button id="start-login-button" type="submit">Войти и проверить /start</button>
     </form>
 
     <div id="refresh-wrap" hidden>
+      <button id="bot-menu-button" type="button">Проверить меню Stickers Bot</button>
       <button id="refresh-button" type="button">Обновить авторские паки через бота</button>
       <p class="note">Обычный вход использует сохранённый список. Обновление отправит боту запрос списка паков.</p>
     </div>
@@ -76,6 +78,8 @@
     const loginForm = document.getElementById('login-form');
     const uploadForm = document.getElementById('upload-form');
     const loginButton = document.getElementById('login-button');
+    const startLoginButton = document.getElementById('start-login-button');
+    const botMenuButton = document.getElementById('bot-menu-button');
     const refreshWrap = document.getElementById('refresh-wrap');
     const refreshButton = document.getElementById('refresh-button');
     const uploadButton = document.getElementById('upload-button');
@@ -186,9 +190,26 @@
       }
     });
 
+    async function checkBotMenu() {
+      botMenuButton.disabled = true;
+      showStatus('Отправляем /start и ждём меню Stickers Bot…');
+      try {
+        const data = await jsonResponse(await fetch('/api/bot-menu', { method: 'POST' }));
+        showStatus(`${data.cached ? 'Использовано сохранённое меню, новая команда не отправлена.' : '/start вернул рабочее меню Stickers Bot.'} Кнопки: ${data.buttons.map(button => button.action).join(', ')}.`, 'success');
+      } catch (error) {
+        showStatus(`Меню не подтверждено: ${error.message}`, 'error');
+      } finally {
+        botMenuButton.disabled = false;
+      }
+    }
+
+    botMenuButton.addEventListener('click', checkBotMenu);
+
     loginForm.addEventListener('submit', async event => {
       event.preventDefault();
+      const testStart = event.submitter === startLoginButton;
       loginButton.disabled = true;
+      startLoginButton.disabled = true;
       uploadForm.hidden = true;
       createForm.hidden = true;
       refreshWrap.hidden = true;
@@ -203,12 +224,17 @@
       });
       passwordInput.value = '';
       try {
-        const data = await jsonResponse(await fetch('/api/login', {
+        const data = await jsonResponse(await fetch(testStart ? '/api/authorize' : '/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body
         }));
         activeEmail = email;
+        if (testStart) {
+          refreshWrap.hidden = false;
+          await checkBotMenu();
+          return;
+        }
         showPacks(data.packs);
         saveOwnedPacks(activeEmail);
         uploadForm.hidden = !packs.length || !data.canUpload;
@@ -221,6 +247,7 @@
         showStatus(error.message, 'error');
       } finally {
         loginButton.disabled = false;
+        startLoginButton.disabled = false;
       }
     });
 

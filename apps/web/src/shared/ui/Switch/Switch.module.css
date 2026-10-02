@@ -1,0 +1,10 @@
+.root { display: inline-flex; align-items: center; gap: 12px; }
+.track { display: inline-flex; width: 42px; height: 25px; flex: none; align-items: center; justify-content: flex-start; padding: 3px; border: 0; border-radius: 999px; outline: none; background: var(--palette-neutral034); cursor: pointer; transition: background .2s ease; }
+.checked { justify-content: flex-end; background: var(--palette-focus-blue); }
+.track:focus-visible { box-shadow: 0 0 0 3px var(--palette-focus-blue-alpha40); }
+.track:disabled { opacity: .6; cursor: not-allowed; }
+.thumb { width: 19px; height: 19px; border-radius: 50%; background: var(--palette-neutral090); box-shadow: 0 1px 4px var(--palette-black-alpha25); pointer-events: none; }
+.thumbInner { width: 19px; height: 19px; }
+.squishRight { margin-left: 4px; }
+.squishLeft { margin-right: 4px; }
+.label { color: inherit; font-size: 13px; cursor: pointer; }

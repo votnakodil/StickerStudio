@@ -1,0 +1,112 @@
+.actions {
+  --surface-muted: var(--palette-white);
+  --auth-text: var(--palette-ink);
+  --auth-border: var(--palette-black-alpha6);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action {
+  width: 100%;
+  cursor: pointer;
+}
+
+.action > span {
+  gap: 8px;
+}
+
+.vkAction {
+  background: var(--action-vk-workspace);
+  color: var(--action-vk-workspace-foreground);
+}
+
+.vkAction:hover {
+  background: color-mix(in srgb, var(--action-vk-workspace) 90%, transparent);
+}
+
+.libraryAction {
+  background: var(--action-library);
+  color: var(--action-library-foreground);
+}
+
+.libraryAction[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.libraryAction > span {
+  overflow: visible;
+}
+
+.librarySurface {
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--action-library);
+}
+
+.libraryIcon {
+  display: inline-grid;
+  place-items: center;
+}
+
+.librarySuccess {
+  color: var(--palette-white);
+}
+
+.confirmReveal {
+  overflow: hidden;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.choice {
+  min-width: 64px;
+  height: 28px;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .yesChoice:hover {
+    background: var(--action-primary);
+    border-color: var(--action-primary);
+    color: var(--action-primary-foreground);
+  }
+
+  .noChoice:hover {
+    background: var(--action-error);
+    border-color: var(--action-error);
+    color: var(--palette-white);
+  }
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--palette-white);
+  outline-offset: 2px;
+}
+
+.libraryAction:hover {
+  background: color-mix(in srgb, var(--action-library) 92%, var(--palette-black));
+}
+
+.librarySurface[data-prompting='true'] .libraryAction,
+.librarySurface[data-prompting='true'] .libraryAction:hover {
+  background: transparent;
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--palette-white);
+  outline-offset: 2px;
+}
+
+.error {
+  margin: 4px 4px 0;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+}

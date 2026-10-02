@@ -5,20 +5,21 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "src/index.css",
+    "css": "src/styles/global.css",
     "baseColor": "neutral",
     "cssVariables": false,
     "prefix": ""
   },
   "aliases": {
-    "components": "src/components",
-    "utils": "src/components/ui/classNames",
-    "ui": "src/components/ui",
-    "lib": "src/lib",
-    "hooks": "src/hooks"
+    "components": "@/features",
+    "utils": "@/shared/lib/classNames",
+    "ui": "@/shared/ui",
+    "lib": "@/shared/lib",
+    "hooks": "@/shared/hooks"
   },
   "iconLibrary": "lucide",
   "registries": {
-    "@beui": "https://beui.dev/r/{name}.json"
+    "@beui": "https://beui.dev/r/{name}.json",
+    "@uiarc": "https://uiarc.dev/r/{name}.json"
   }
 }
