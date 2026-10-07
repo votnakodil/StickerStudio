@@ -1,0 +1,8 @@
+.section { padding: 18px 0; border-bottom: 1px solid var(--palette-white-alpha10); }
+.heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.heading h3 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .015em; }
+.slider { padding-right: 0; padding-left: 0; }
+.error { margin: 12px 0 0; color: var(--palette-error-red); font-size: 12px; }
+@media (prefers-color-scheme: light) {
+  .section { border-bottom-color: var(--palette-overlay-base10-alpha10); }
+}

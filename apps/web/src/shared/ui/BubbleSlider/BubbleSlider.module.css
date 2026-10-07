@@ -9,11 +9,11 @@
 .bubble { position: relative; padding: 4px 10px; border-radius: 12px; color: var(--palette-neutral013); background: var(--palette-neutral090); box-shadow: 0 4px 14px var(--palette-black-alpha24); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bubbleTip { position: absolute; bottom: -4px; left: 50%; width: 10px; height: 10px; border-radius: 3px; background: var(--palette-neutral090); transform: translateX(-50%) rotate(45deg); }
 .hitArea { position: absolute; inset: -20px 0; width: 100%; border: 0; border-radius: 999px; outline: none; background: transparent; cursor: inherit; touch-action: none; }
-.hitArea:focus-visible { box-shadow: 0 0 0 4px var(--palette-white-alpha22); }
+.track:has(.hitArea:focus-visible:not([data-pointer-focus])) .thumb { box-shadow: 0 0 0 4px var(--palette-white-alpha22); }
 @media (prefers-color-scheme: light) {
   .track { background: var(--palette-overlay-base09-alpha12); }
   .bubble, .bubbleTip { background: var(--palette-neutral015); }
   .bubble { color: var(--palette-neutral090); }
   .thumb { background: var(--palette-neutral097); }
-  .hitArea:focus-visible { box-shadow: 0 0 0 4px var(--palette-overlay-base09-alpha20); }
+  .track:has(.hitArea:focus-visible:not([data-pointer-focus])) .thumb { box-shadow: 0 0 0 4px var(--palette-overlay-base09-alpha20); }
 }

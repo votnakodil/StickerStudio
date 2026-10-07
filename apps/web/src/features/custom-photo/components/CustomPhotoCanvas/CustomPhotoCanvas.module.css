@@ -1,0 +1,4 @@
+.editor { position: absolute; inset: 0; }
+.reveal { position: absolute; inset: 0; pointer-events: none; }
+
+.shine { position: absolute; pointer-events: none; }

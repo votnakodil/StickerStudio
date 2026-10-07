@@ -1,3 +1,4 @@
+import { getTextFrameStrokeWidth, changeTextFrameDimension } from './textFrameGeometry'
 import { getStickerTextAutoSize } from './textSettings'
 import { controlsUtils } from 'fabric'
 import type { Textbox } from 'fabric'
@@ -6,14 +7,14 @@ import { fitStickerText, fitTextFrameAfterWidthChange, MIN_TEXT_FRAME_HEIGHT, up
 import type { AlignmentGuide } from '../alignmentGuides'
 import { RESIZE_SNAP_DISTANCE } from '../canvas/controls'
 
-export const changeStickerTextWidth: typeof controlsUtils.changeObjectWidth = (event, transform, x, y) => {
+export const changeStickerTextWidth: typeof controlsUtils.changeObjectWidth = (_event, transform, x, y) => {
   const text = transform.target as StickerTextbox
-  if (!getStickerTextAutoSize(text)) return controlsUtils.changeObjectWidth(event, transform, x, y)
+  if (!getStickerTextAutoSize(text)) return changeTextFrameDimension('width', transform, x, y)
   const point = controlsUtils.getLocalPoint(transform, transform.originX, transform.originY, x, y)
   const origin = typeof transform.originX === 'number' ? transform.originX - 0.5
     : transform.originX === 'left' ? -0.5 : transform.originX === 'right' ? 0.5 : 0
   if (origin !== 0 && (origin > 0 ? point.x >= 0 : point.x <= 0)) return false
-  const padding = text.strokeWidth / (text.strokeUniform ? text.scaleX : 1)
+  const padding = getTextFrameStrokeWidth(text) / (text.strokeUniform ? text.scaleX : 1)
   const width = Math.max(1, Math.abs(point.x * (origin === 0 ? 2 : 1) / text.scaleX) - padding)
   const changed = Math.abs(text.width - width) > 0.01
   text._set('width', width)
@@ -46,7 +47,7 @@ export const resizeStickerTextWidth = (
 export const resizeStickerTextHeight =
   controlsUtils.wrapWithFixedAnchor(
     (
-      eventData,
+      _eventData,
       transform,
       x,
       y,
@@ -55,8 +56,8 @@ export const resizeStickerTextHeight =
         transform.target as StickerTextbox
 
       const changed =
-        controlsUtils.changeObjectHeight(
-          eventData,
+        changeTextFrameDimension(
+          'height',
           transform,
           x,
           y,
@@ -111,8 +112,8 @@ export const resizeStickerTextFrame =
       )
 
       const heightChanged =
-        controlsUtils.changeObjectHeight(
-          eventData,
+        changeTextFrameDimension(
+          'height',
           transform,
           x,
           y,

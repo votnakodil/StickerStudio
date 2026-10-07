@@ -1,10 +1,14 @@
 import type { StickerCanvas, StickerLayer } from '../types'
 import { Textbox, FabricImage, ActiveSelection } from 'fabric'
 import { saveHistory } from '../history/history'
+import { deleteQuickSelection } from '../images/quickSelection'
+import { layerId } from './layerIdentity'
 
 export function deleteSelectedObjects(
   canvas: StickerCanvas,
 ) {
+  if (deleteQuickSelection(canvas)) return
+  if (canvas.editorTool === 'quick-selection') return
   const selectedObjects =
     canvas.getActiveObjects()
 
@@ -26,19 +30,6 @@ export function deleteSelectedObjects(
   )
 
   canvas.requestRenderAll()
-}
-
-export const layerIds = new WeakMap<object, string>()
-
-export let nextLayerId = 0
-
-export function layerId(object: object) {
-  let id = layerIds.get(object)
-  if (!id) {
-    id = `layer-${++nextLayerId}`
-    layerIds.set(object, id)
-  }
-  return id
 }
 
 export function reorderStickerLayers(canvas: StickerCanvas, frontToBackIds: readonly string[]) {

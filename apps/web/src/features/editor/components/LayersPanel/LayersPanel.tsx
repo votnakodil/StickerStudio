@@ -20,7 +20,7 @@ import styles from './LayersPanel.module.css'
 import { LayerRow } from '@/features/editor/components/LayersPanel/LayerRow'
 import { ExportPanel } from '@/features/editor/components/ExportPanel/ExportPanel'
 
-export function LayersPanel({ onBeforeBack, stickerId }: { onBeforeBack?: () => void; stickerId?: string }) {
+export function LayersPanel({ onBeforeBack, stickerId, stickerName, editingEnabled = true }: { editingEnabled?: boolean; onBeforeBack?: () => void; stickerId?: string; stickerName?: string }) {
   const canvas = useEditorStore((state) => state.canvas)
   const [layers, setLayers] = useState<StickerLayer[]>([])
   const displayedLayers = canvas ? layers : []
@@ -85,14 +85,14 @@ export function LayersPanel({ onBeforeBack, stickerId }: { onBeforeBack?: () => 
             className={styles.addButton}
             aria-label="Add text layer"
             title="Add text layer"
-            disabled={!canvas}
+            disabled={!canvas || !editingEnabled}
             onClick={() => canvas && addStickerText(canvas)}
           >
             <IconPlus width={16} height={16} fill="currentColor" aria-hidden="true" />
           </button>
         </header>
 
-        <motion.div className={styles.list} layoutScroll>
+        <motion.div className={styles.list} layoutScroll inert={!editingEnabled}>
           <Reorder.Group as="ol" axis="y" className={styles.objectList} values={displayedLayers.map((layer) => layer.id)} onReorder={reorder}>
             {canvas && displayedLayers.map((layer) => <LayerRow key={layer.id} layer={layer} canvas={canvas}
               onCommit={(id) => commitStickerLayerOrder(canvas, id)} onKeyboardMove={moveWithKeyboard} />)}
@@ -120,8 +120,8 @@ export function LayersPanel({ onBeforeBack, stickerId }: { onBeforeBack?: () => 
             </ol>
           )}
         </motion.div>
-        <footer className={styles.footer}>
-          <ExportPanel canvas={canvas} stickerName={stickerId} />
+        <footer className={styles.footer} inert={!editingEnabled}>
+          <ExportPanel canvas={canvas} stickerId={stickerId} stickerName={stickerName ?? stickerId} />
         </footer>
       </div>
     </aside>

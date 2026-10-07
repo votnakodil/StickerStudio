@@ -11,15 +11,16 @@ import {
   IconArrowUturnLeft,
   IconArrowUturnRight,
   IconCursorarrow,
-  IconHandRaised,
+  IconEraserFill,
+  IconInsetFilledCircleDashed,
   IconTextformat,
   IconTrash,
 } from 'symbols-react'
 import {
   addStickerText,
   deleteSelectedObjects,
+  clearQuickSelection,
   redo,
-  setEditorTool,
   undo,
 } from '@sticker-studio/editor'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -30,8 +31,9 @@ import styles from './CanvasToolbar.module.css'
 
 type ToolId =
   | 'move'
-  | 'hand'
   | 'text'
+  | 'eraser'
+  | 'quick-selection'
 
 type ToolbarPosition = { x: number; y: number }
 type PixelPosition = { left: number; top: number }
@@ -94,8 +96,8 @@ export function CanvasToolbar({
     (state) => state.canvas,
   )
 
-  const [tool, setTool] =
-    useState<ToolId>('move')
+  const tool = useEditorStore(state => state.activeTool)
+  const setTool = useEditorStore(state => state.selectTool)
   const [savedPosition, setSavedPosition] = useState<ToolbarPosition | null>(loadToolbarPosition)
   const [pixelPosition, setPixelPosition] = useState<PixelPosition | null>(null)
   const barRef = useRef<HTMLDivElement>(null)
@@ -247,30 +249,7 @@ export function CanvasToolbar({
       return
     }
 
-    if (nextTool === 'move') {
-      setEditorTool(
-        canvas,
-        'move',
-      )
-
-      return
-    }
-
-    if (nextTool === 'hand') {
-      setEditorTool(
-        canvas,
-        'hand',
-      )
-
-      return
-    }
-
     if (nextTool === 'text') {
-      setEditorTool(
-        canvas,
-        'move',
-      )
-
       addStickerText(canvas)
     }
   }
@@ -317,6 +296,7 @@ export function CanvasToolbar({
     },
   )
 
+  useHotkeys('escape', () => { if (canvas && tool === 'quick-selection') clearQuickSelection(canvas) }, { enabled: Boolean(canvas), preventDefault: true })
   useHotkeys(
     ['backspace', 'delete'],
     handleDelete,
@@ -362,30 +342,15 @@ export function CanvasToolbar({
           />
         </button>
 
-        <button
-          type="button"
-          className={styles.barTool}
-          data-active={
-            tool === 'hand' ||
-            undefined
-          }
-          aria-label="Hand"
-          aria-pressed={
-            tool === 'hand'
-          }
-          title="Hand"
-          onClick={() =>
-            selectTool('hand')
-          }
-        >
-          <IconHandRaised
-            width="18"
-            height="18"
-            fill="currentColor"
-            aria-hidden="true"
-          />
+        <button type="button" className={styles.barTool} data-active={tool === 'eraser' || undefined}
+          aria-label="Eraser" aria-pressed={tool === 'eraser'} title="Eraser" onClick={() => selectTool('eraser')}>
+          <IconEraserFill width="18" height="18" fill="currentColor" aria-hidden="true" />
         </button>
 
+        <button type="button" className={styles.barTool} data-active={tool === 'quick-selection' || undefined}
+          aria-label="Quick Selection" aria-pressed={tool === 'quick-selection'} title="Quick Selection" onClick={() => selectTool('quick-selection')}>
+          <IconInsetFilledCircleDashed width="18" height="18" fill="currentColor" aria-hidden="true" />
+        </button>
         <div
           className={styles.barSplit}
         />
@@ -450,7 +415,7 @@ export function CanvasToolbar({
 
         <button
           type="button"
-          className={styles.barTool}
+          className={`${styles.barTool} ${styles.barDestructive}`}
           aria-label="Delete"
           title="Delete"
           onClick={handleDelete}

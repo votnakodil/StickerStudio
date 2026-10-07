@@ -14,6 +14,7 @@ export interface SliderOptions {
   max?: number;
   step?: number;
   disabled?: boolean;
+  edgeInset?: number;
   "aria-label"?: string;
   formatValueText?: (value: number) => string;
 }
@@ -26,6 +27,7 @@ export function useSlider({
   max = 100,
   step = 1,
   disabled = false,
+  edgeInset = 0,
   "aria-label": ariaLabel,
   formatValueText,
 }: SliderOptions) {
@@ -34,6 +36,7 @@ export function useSlider({
   const draggingRef = useRef(false);
   const [internal, setInternal] = useState(defaultValue);
   const [dragging, setDragging] = useState(false);
+  const [pointerFocus, setPointerFocus] = useState(false);
   const controlled = value !== undefined;
   const lo = min;
   const hi = Math.max(min, max);
@@ -50,11 +53,15 @@ export function useSlider({
   const commitFromX = useCallback((clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect();
     if (!rect?.width) return;
-    commit(lo + clamp((clientX - rect.left) / rect.width, 0, 1) * (hi - lo));
-  }, [commit, hi, lo]);
+    const inset = Math.min(Math.max(0, edgeInset), rect.width / 2);
+    const travel = rect.width - inset * 2;
+    if (travel <= 0) return;
+    commit(lo + clamp((clientX - rect.left - inset) / travel, 0, 1) * (hi - lo));
+  }, [commit, edgeInset, hi, lo]);
 
   const onPointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
     if (disabled) return;
+    setPointerFocus(true);
     draggingRef.current = true;
     setDragging(true);
     try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
@@ -74,6 +81,7 @@ export function useSlider({
 
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
     if (disabled) return;
+    setPointerFocus(false);
     const values: Record<string, number> = {
       ArrowRight: current + stride,
       ArrowUp: current + stride,
@@ -115,6 +123,8 @@ export function useSlider({
       "aria-valuenow": current,
       "aria-valuetext": formatValueText?.(current),
       "aria-disabled": disabled || undefined,
+      "data-pointer-focus": pointerFocus || undefined,
+      onBlur: () => setPointerFocus(false),
       onKeyDown,
     },
   };

@@ -12,7 +12,7 @@ import { SPRING_SWAP } from '@/shared/lib/motion'
 import styles from './ExportActions.module.css'
 import { VkWorkspaceSheet } from '@/features/vk-workspace'
 
-export function ExportActions({ canvas, stickerName, active = true, onFinish }: ExportActionsOptions) {
+export function ExportActions({ canvas, stickerId, stickerName, active = true, onFinish }: ExportActionsOptions) {
   const {
     pngState,
     libraryState,
@@ -30,7 +30,7 @@ export function ExportActions({ canvas, stickerName, active = true, onFinish }: 
     accept,
     saveLibrary,
     revealTransition,
-  } = useExportActions({ canvas, stickerName, active, onFinish })
+  } = useExportActions({ canvas, stickerId, stickerName, active, onFinish })
 
   return <div className={styles.actions}>
     <StatefulButton variant="secondary" size="md" className={styles.action}

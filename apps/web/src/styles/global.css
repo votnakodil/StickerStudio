@@ -22,3 +22,8 @@ body,
   height: 100%;
   margin: 0;
 }
+
+:root { --sticker-canvas-size: min(56vh, calc(100vw - 48px)); }
+@media (max-width: 760px) {
+  :root { --sticker-canvas-size: min(82vw, 56vh); }
+}

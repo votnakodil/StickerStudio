@@ -5,15 +5,14 @@
 import {
   AnimatePresence,
   motion,
-  useMotionTemplate,
   useMotionValue,
   useReducedMotion,
   useSpring,
   useTransform,
   useVelocity,
 } from "motion/react";
-import { useEffect } from "react";
-import { SPRING_GLIDE, SPRING_PANEL, SPRING_PRESS } from "@/shared/lib/motion";
+import { useLayoutEffect } from "react";
+import { SPRING_PANEL, SPRING_PRESS } from "@/shared/lib/motion";
 import { type SliderOptions, useSlider } from "@/shared/hooks/useSlider";
 import { cn } from "@/shared/lib/classNames";
 import styles from "./BubbleSlider.module.css";
@@ -31,14 +30,15 @@ export function BubbleSlider({ format, showBubble = true, className, ...options 
   const reduce = useReducedMotion();
   const { percent, current, dragging, trackProps, sliderProps } = useSlider({
     ...options,
+    edgeInset: 10,
     formatValueText: options.formatValueText ?? format,
   });
   const readout = format ? format(current) : current;
   const target = useMotionValue(percent);
-  useEffect(() => { target.set(percent); }, [percent, target]);
-  const smooth = useSpring(target, SPRING_GLIDE);
-  const position = reduce ? target : smooth;
-  const left = useMotionTemplate`${position}%`;
+  useLayoutEffect(() => { target.set(percent); }, [percent, target]);
+  const position = target;
+  // Keep the 20px handle inside the track at both endpoints.
+  const left = `calc(${percent}% + ${10 - percent * 0.2}px)`;
   const velocity = useVelocity(position);
   const lean = useSpring(useTransform(velocity, [-FULL_TILT, 0, FULL_TILT], [1, 0, -1], { clamp: true }), SPRING_TILT);
   const tilt = useTransform(lean, (value) => value * 16);

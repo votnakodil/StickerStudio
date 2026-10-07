@@ -5,7 +5,13 @@
   width: 100%;
   overflow: clip;
   min-height: 100vh;
+  background: var(--palette-neutral088);
   color: var(--palette-ink);
+}
+
+/* Let the existing backdrop fade reveal the incoming library on return. */
+.page[data-leaving] {
+  background: transparent;
 }
 
 .backdrop {
@@ -30,6 +36,7 @@
 }
 
 .inspector {
+  width: 280px;
   position: absolute;
   z-index: 4;
   top: 24px;
@@ -49,7 +56,7 @@
 .zoomFrame {
   position: relative;
   container-type: inline-size;
-  width: min(56vh, calc(100vw - 48px));
+  width: var(--sticker-canvas-size);
   flex: 0 0 auto;
   aspect-ratio: 1;
   transform-origin: center;
@@ -58,7 +65,6 @@
 .heroTitle {
   position: absolute;
   z-index: 3;
-  transform: translate(-50%, -50%);
   line-height: 1.16;
   text-align: center;
   pointer-events: none;
@@ -106,6 +112,7 @@
 
 @media (prefers-color-scheme: dark) {
   .page {
+    background: var(--palette-neutral001);
     color: var(--palette-white);
   }
 
@@ -134,7 +141,7 @@
   }
 
   .zoomFrame {
-    width: min(82vw, 56vh);
+    width: var(--sticker-canvas-size);
   }
 
   .layers {
@@ -152,4 +159,10 @@
     bottom: auto;
   }
 
+}
+
+.photoBack { display: none; }
+@media (max-width: 760px) {
+  .page[data-preparing] .layers, .page[data-preparing] .inspector { display: none; }
+  .photoBack { display: block; position: fixed; top: 16px; left: 16px; z-index: 5; }
 }

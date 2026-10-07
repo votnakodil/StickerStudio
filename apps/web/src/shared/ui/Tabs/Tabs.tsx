@@ -428,10 +428,41 @@ export function TabsTrigger({
   );
 }
 
-export function TabsContent({ value, children, className }: { value: string; children: ReactNode; className?: string }) {
+export function TabsContent({ value, children, className, motionTransition, motionOffset = 24 }: {
+  value: string;
+  children: ReactNode;
+  className?: string;
+  motionTransition?: Transition;
+  motionOffset?: number;
+}) {
   const { value: current, layoutId } = useTabs();
   const reduce = useReducedMotion();
   const active = current === value;
+  if (motionTransition) {
+    return (
+      <motion.div
+        id={`${layoutId}-${value}-panel`}
+        role="tabpanel"
+        aria-labelledby={`${layoutId}-${value}-tab`}
+        aria-hidden={!active}
+        inert={!active}
+        tabIndex={active ? 0 : -1}
+        initial={active ? false : { opacity: 0, x: reduce ? 0 : motionOffset, scale: reduce ? 1 : 0.96, display: 'none' }}
+        animate={{
+          opacity: active ? 1 : 0,
+          x: active || reduce ? 0 : motionOffset,
+          scale: active || reduce ? 1 : 0.96,
+          display: 'block',
+          transitionEnd: { display: active ? 'block' : 'none' },
+        }}
+        transition={reduce ? { duration: 0 } : { ...motionTransition, opacity: { duration: 0.16, ease: EASE_OUT } }}
+        style={{ pointerEvents: active ? 'auto' : 'none', transformOrigin: '50% 0%' }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    );
+  }
   if (!active) {
     return (
       <div id={`${layoutId}-${value}-panel`} role="tabpanel" aria-labelledby={`${layoutId}-${value}-tab`} hidden className={className}>

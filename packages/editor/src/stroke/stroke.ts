@@ -6,7 +6,7 @@ import type { FabricImage } from 'fabric'
 
 export const DEFAULT_STROKE: StickerStrokeSettings = {
   enabled: false,
-  width: 10,
+  width: 7,
   color: palette.white,
   opacity: 1,
 }
@@ -37,6 +37,13 @@ export function applyTextStroke(text: StickerTextbox) {
   })
 }
 
+/** The outline renderer paints the silhouette; Fabric's stroke width supplies its geometry. */
+export function applyImageStroke(image: StickerImage) {
+  const stroke = image.stickerStroke ?? DEFAULT_STROKE
+  image.set({ stroke: null, strokeWidth: stroke.enabled && stroke.opacity > 0 ? stroke.width * 2 : 0, strokeUniform: false })
+  image.setCoords()
+}
+
 export function hexWithOpacity(color: string, opacity: number) {
   const hex = color.replace('#', '')
   return `rgba(${parseInt(hex.slice(0, 2), 16)}, ${parseInt(hex.slice(2, 4), 16)}, ${parseInt(hex.slice(4, 6), 16)}, ${opacity})`
@@ -58,6 +65,7 @@ export function updateStickerStroke(
   const stroke = normalizeStroke({ ...base, ...changes })
   ;(object as StickerTextbox | StickerImage).stickerStroke = stroke
   if (object instanceof Textbox) applyTextStroke(object as StickerTextbox)
+  else applyImageStroke(object as StickerImage)
   object.dirty = true
   canvas.requestRenderAll()
   canvas.fire('object:modified', { target: object })

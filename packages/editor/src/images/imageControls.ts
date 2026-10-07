@@ -1,6 +1,7 @@
 import { controlsUtils, FabricImage, Control } from 'fabric'
 import type { StickerImage, StickerCanvas } from '../types'
-import { DEFAULT_STROKE } from '../stroke/stroke'
+import { DEFAULT_STROKE, applyImageStroke } from '../stroke/stroke'
+import { configureImageSmoothing } from './imageSmoothing'
 import { drawImageOutline } from './imageOutline'
 import { keepControlsInsideCanvas, RESIZE_SNAP_DISTANCE } from '../canvas/controls'
 import type { AlignmentGuide } from '../alignmentGuides'
@@ -31,6 +32,7 @@ export const scaleStickerImageFromSide = controlsUtils.wrapWithFireEvent(
 )
 
 export function configureStickerImage(image: FabricImage) {
+  configureImageSmoothing(image)
   const sticker = image as StickerImage
   sticker.stickerStroke ??= { ...DEFAULT_STROKE }
   if (!sticker.stickerStrokeRendererInstalled) {
@@ -41,6 +43,7 @@ export function configureStickerImage(image: FabricImage) {
     }
     sticker.stickerStrokeRendererInstalled = true
   }
+  applyImageStroke(sticker)
   image.set('objectCaching', false)
   const sideControl = (x: number, y: number) => new Control({
     x,

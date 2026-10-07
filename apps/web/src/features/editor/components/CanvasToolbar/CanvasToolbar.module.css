@@ -6,12 +6,9 @@
   --bar-corner: 14px;
   --bar-tool-corner: 10px;
 
-  --bar-ink: var(--palette-white-alpha82);
   --bar-ink-muted: var(--palette-white-alpha46);
 
   --bar-surface: var(--palette-overlay-base05-alpha78);
-  --bar-surface-hover: var(--palette-white-alpha8);
-  --bar-surface-active: var(--palette-white-alpha14);
 
   --bar-edge: var(--palette-white-alpha11);
   --bar-edge-inner: var(--palette-white-alpha5);
@@ -88,6 +85,9 @@
   border: 0;
   border-radius: var(--bar-tool-corner);
 
+  --tool-accent: var(--palette-focus-blue);
+  --tool-fill-opacity: 14%;
+
   color: var(--bar-ink-muted);
   background: transparent;
 
@@ -97,13 +97,12 @@
   transition:
     color 140ms ease,
     background-color 140ms ease,
-    transform 140ms ease,
-    box-shadow 140ms ease;
+    transform 140ms ease;
 }
 
 .barTool:hover {
-  color: var(--bar-ink);
-  background: var(--bar-surface-hover);
+  color: var(--tool-accent);
+  background: color-mix(in srgb, var(--tool-accent) var(--tool-fill-opacity), transparent);
 }
 
 .barTool:active {
@@ -111,18 +110,17 @@
 }
 
 .barTool[data-active="true"] {
-  color: var(--palette-white-alpha96);
-  background: var(--bar-surface-active);
+  color: var(--tool-accent);
+  background: color-mix(in srgb, var(--tool-accent) var(--tool-fill-opacity), transparent);
+}
 
-  box-shadow:
-    inset 0 0 0 1px
-    var(--palette-white-alpha5p5);
+.barDestructive {
+  --tool-accent: var(--palette-error-red);
 }
 
 .barTool:focus-visible {
-  box-shadow:
-    0 0 0 2px
-    var(--palette-focus-blue-alpha80);
+  outline: 2px solid var(--tool-accent);
+  outline-offset: 2px;
 }
 
 .barGrip {
@@ -327,20 +325,16 @@
 
 @media (prefers-color-scheme: light) {
   .barEntrance {
-    --bar-ink: var(--palette-neutral017);
     --bar-ink-muted: var(--palette-neutral049);
     --bar-surface: var(--palette-neutral095-alpha86);
-    --bar-surface-hover: var(--palette-overlay-base07-alpha7);
-    --bar-surface-active: var(--palette-overlay-base03-alpha13);
     --bar-edge: var(--palette-white-alpha70);
     --bar-edge-inner: var(--palette-white);
     --bar-shadow: 0 12px 36px var(--palette-overlay-base06-alpha16), 0 2px 8px var(--palette-overlay-base06-alpha10);
     background: linear-gradient(180deg, var(--palette-white-alpha95), var(--palette-overlay-base04-alpha28));
   }
 
-  .barTool[data-active="true"] {
-    color: var(--palette-tint001);
-    box-shadow: inset 0 0 0 1px var(--palette-overlay-base03-alpha8);
+  .barTool {
+    --tool-fill-opacity: 9%;
   }
 
   .barSplit {
@@ -351,4 +345,8 @@
   .barFlyout::after {
     background: var(--palette-neutral095-alpha96);
   }
+}
+
+@media (max-width: 380px) {
+  .barWell { --bar-slot: 32px; --bar-pad: 4px; --bar-gap: 1px; }
 }

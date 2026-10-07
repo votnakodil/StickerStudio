@@ -1,18 +1,19 @@
 import type { StickerTemplate } from '@/features/library/model/stickers'
+import { useLibraryGalleryStore } from '@/features/library/model/libraryGalleryStore'
 import { AddPhotoCard } from '@/features/library/components/AddPhotoCard/AddPhotoCard'
 import { StickerCard } from '@/features/library/components/StickerCard/StickerCard'
+import { GridList } from '@/shared/ui/GridList'
 
 interface StickerGalleryProps {
+  saved?: boolean
   stickers: readonly StickerTemplate[]
 }
 
-export function StickerGallery({ stickers }: StickerGalleryProps) {
+export function StickerGallery({ stickers, saved = false }: StickerGalleryProps) {
+  const layout = useLibraryGalleryStore(state => state.layout)
   return (
-    <section aria-label="Sticker templates">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
-        {stickers.map((sticker) => <StickerCard key={sticker.id} sticker={sticker} />)}
-        <AddPhotoCard />
-      </div>
-    </section>
+    <GridList items={stickers} layout={layout} getKey={sticker => sticker.id}
+      label="Sticker templates" trailingItem={context => <AddPhotoCard {...context} />}
+      renderItem={(sticker, { layout, flipId }) => <StickerCard saved={saved} sticker={sticker} layout={layout} flipId={flipId} />} />
   )
 }

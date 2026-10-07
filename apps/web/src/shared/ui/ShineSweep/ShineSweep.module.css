@@ -1,0 +1,22 @@
+.surface {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+}
+.band {
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(45deg,
+    transparent 44%,
+    var(--palette-white-alpha12) 47%,
+    var(--palette-white-alpha70) 49%,
+    var(--palette-white-alpha95) 50%,
+    var(--palette-white-alpha70) 51%,
+    var(--palette-white-alpha12) 53%,
+    transparent 56%);
+}

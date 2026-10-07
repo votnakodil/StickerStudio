@@ -21,6 +21,11 @@
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 
+.contents { position: absolute; z-index: 1; inset: 0; transform-origin: 0 0; }
+
+/* FLIP transforms create stacking contexts; keep labels above the blur throughout. */
+.labelContents { position: absolute; z-index: 3; inset: 0; pointer-events: none; transform-origin: 0 0; }
+
 .imageShell {
   position: absolute;
   z-index: 1;
@@ -28,13 +33,15 @@
   top: var(--image-top);
   width: var(--image-size);
   height: var(--image-size);
-  transition: left .28s ease, top .28s ease, width .28s ease, height .28s ease;
+  transition: none;
 }
 
 .picture {
   position: absolute;
   inset: 0;
   display: block;
+  transform: scale(1);
+  transition: transform var(--image-hover-duration) var(--image-hover-ease);
 }
 
 .image {
@@ -87,17 +94,19 @@
   color: var(--palette-neutral010);
 }
 
+.labelText {
+  display: inline-block;
+  transform-origin: 0 0;
+}
+
 .card:hover {
   transform: translateY(-3px);
-  border-color: var(--palette-neutral071);
   box-shadow: 0 12px 30px var(--palette-overlay-base01-alpha9p412);
 }
 
-.card:hover .imageShell, .card:focus-visible .imageShell {
-  left: var(--image-hover-left);
-  top: var(--image-hover-top);
-  width: var(--image-hover-size);
-  height: var(--image-hover-size);
+.card:hover .picture,
+.card:focus-visible .picture {
+  transform: scale(1.06);
 }
 
 .card:active {
@@ -123,7 +132,6 @@
   }
 
   .card:hover {
-    border-color: var(--palette-neutral036);
     box-shadow: 0 12px 30px var(--palette-black-alpha40);
   }
 }
@@ -133,7 +141,7 @@
     transition: none;
   }
 
-  .imageShell {
+  .picture {
     transition: none;
   }
 
@@ -141,3 +149,9 @@
     transform: none;
   }
 }
+
+.list { aspect-ratio: auto; height: 100%; }
+.list .imageShell { left: 0; top: 0; width: 96px; height: 96px; transition: none; }
+
+.list .label { top: 0; left: 96px; display: flex; align-items: center; padding: 16px 20px; font-size: 17px; }
+.list .card:hover { transform: none; }

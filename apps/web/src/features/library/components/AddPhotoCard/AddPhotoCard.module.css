@@ -1,6 +1,7 @@
 .wrap {
   position: relative;
   min-width: 0;
+  height: 100%;
 }
 
 .wrap:hover, .wrap:focus-within {
@@ -35,7 +36,7 @@
   transition: stroke 1.2s ease-in-out;
 }
 
-.dashedBorder path {
+.dashedBorder rect {
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 9px 9px;
   stroke-dashoffset: -4.5px;
@@ -56,6 +57,9 @@
 
 .addIcon {
   flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--palette-neutral053);
   transition: color .3s ease;
 }
@@ -73,25 +77,19 @@
 
 .title > span {
   display: block;
+  width: fit-content;
+  margin-inline: auto;
 }
 
 .types {
   display: block;
+  width: fit-content;
   max-width: 100%;
   color: var(--palette-neutral054);
   font-size: 11px;
   font-weight: 550;
   letter-spacing: .02em;
   text-align: center;
-}
-
-.filename {
-  overflow: hidden;
-  max-width: 100%;
-  color: var(--palette-neutral031);
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .error {
@@ -145,10 +143,6 @@
     color: var(--palette-neutral056);
   }
 
-  .filename {
-    color: var(--palette-neutral078);
-  }
-
   .dropzone:hover, .dropzone:focus-visible, .active {
     --dash-color: var(--palette-tint011);
   }
@@ -167,3 +161,57 @@
     transition: none;
   }
 }
+
+.preview {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--palette-neutral084);
+  box-shadow: 0 12px 30px var(--palette-overlay-base01-alpha9p412);
+  pointer-events: none;
+  z-index: 2;
+}
+.previewArtwork {
+  position: absolute;
+  inset: 0;
+}
+.previewArtwork img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+@media (prefers-color-scheme: dark) {
+  .preview {
+    background: var(--palette-neutral024);
+    box-shadow: 0 12px 30px var(--palette-black-alpha40);
+  }
+}
+
+.previewBorder {
+  z-index: 3;
+  --dash-color: var(--palette-tint008);
+}
+@media (prefers-color-scheme: dark) {
+  .previewBorder { --dash-color: var(--palette-tint011); }
+}
+
+.previewClip {
+  position: absolute;
+  /* Photo fits just inside the 3px dashed stroke. */
+  inset: 3px;
+  overflow: hidden;
+  border-radius: 21px;
+  pointer-events: none;
+  z-index: 2;
+}
+.previewClip .preview {
+  border-radius: inherit;
+}
+
+.contents { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transform-origin: 0 0; }
+.list { aspect-ratio: auto; height: 96px; }
+.list .content { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: center; gap: 6px 20px; padding: 16px 24px; }
+.list .addIcon { grid-row: span 2; }
+.list .title { width: auto; font-size: 17px; text-align: left; }
+.list .title > span { display: inline-block; margin-inline: 0; }
+.list .title > span + span { margin-left: .25em; }
+.list .types { grid-column: 2; margin: 0; text-align: left; }
+

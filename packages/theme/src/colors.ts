@@ -1,4 +1,5 @@
 export const palette = {
+  processingGrayDark: "#414141",
   black: "#000000",
   blackAlpha13p333: "rgba(0,0,0,0.13333333333333333)",
   blackAlpha26p667: "rgba(0,0,0,0.26666666666666666)",
@@ -252,6 +253,7 @@ export const themeColors = {
     foreground: palette.ink,
     surface: palette.white,
     surfaceMuted: palette.neutral087,
+    processingSurface: palette.neutral086,
     textMuted: palette.neutral046,
     border: palette.neutral080,
     borderStrong: palette.neutral068,
@@ -261,6 +263,7 @@ export const themeColors = {
     foreground: palette.neutral087,
     surface: palette.neutral004,
     surfaceMuted: palette.neutral009,
+    processingSurface: palette.processingGrayDark,
     textMuted: palette.neutral063,
     border: palette.neutral019,
     borderStrong: palette.neutral032,

@@ -6,6 +6,7 @@ export type StickerTextbox = Textbox & {
   stickerAutoSize?: boolean
   stickerMaxFontSize?: number
   stickerStrokeFontSize?: number
+  stickerFrameStrokeWidth?: number
   stickerFrameWidth?: number
   stickerFrameHeight?: number
   stickerCustomFill?: boolean
@@ -19,6 +20,9 @@ export type StickerTextbox = Textbox & {
 export type StickerImage = FabricImage & {
   stickerStroke?: StickerStrokeSettings
   stickerStrokeRendererInstalled?: boolean
+  stickerErasedPaths?: ImageErasedPath[]
+  stickerErasedRegions?: { x: number; y: number; width: number; height: number }[]
+  stickerEdgeSmoothing?: number
 }
 
 export type StickerStrokeSettings = {
@@ -41,13 +45,21 @@ export type StickerTextStyle = {
   stickerVerticalAlign: 'top' | 'middle' | 'bottom'
 }
 
-export type EditorTool = 'move' | 'hand'
+export interface ImageErasedPath {
+  smooth?: boolean
+  points: { x: number; y: number }[]
+  radiusX: number
+  radiusY: number
+}
+
+export type EditorTool = 'move' | 'hand' | 'eraser' | 'quick-selection'
 
 export interface StickerCanvas extends Canvas {
   history: HistoryEntry[]
   historyIndex: number
   isRestoringHistory: boolean
   editorTool: EditorTool
+  eraserSize: number
   stickerTextColor: string
 }
 
@@ -72,6 +84,9 @@ export interface StickerCanvasPreset {
 
 export interface StickerTemplateText {
   topText: string
+  imageStroke?: StickerStrokeSettings
+  imageFit?: { width: number; height: number }
+  imageRoundness?: number
   bottomText: string
   preset?: StickerCanvasPreset
 }

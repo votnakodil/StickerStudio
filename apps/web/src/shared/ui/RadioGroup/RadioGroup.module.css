@@ -1,0 +1,16 @@
+.group { display: flex; flex-direction: column; gap: 16px; }
+.group[data-orientation="horizontal"] { flex-direction: row; flex-wrap: wrap; }
+.item { display: inline-flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.control { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; padding: 0; border: 2px solid var(--palette-neutral050); border-radius: 50%; background: transparent; cursor: inherit; transition: border-color 0.16s; outline: none; }
+.control[data-state="checked"] { border-color: var(--palette-focus-blue); }
+.control:focus-visible { outline: 2px solid var(--palette-focus-blue); outline-offset: 3px; }
+.indicator { position: absolute; inset: 3px; border-radius: 50%; background: var(--palette-focus-blue); }
+.content { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.label { color: var(--palette-neutral090); font-size: 12px; font-weight: 600; line-height: 20px; }
+.description { color: var(--palette-neutral060); font-size: 11px; line-height: 1.5; }
+.disabled { opacity: 0.5; cursor: not-allowed; }
+@media (prefers-color-scheme: light) {
+  .label { color: var(--palette-neutral015); }
+  .description { color: var(--palette-neutral045); }
+}
+@media (prefers-reduced-motion: reduce) { .control { transition: none; } }

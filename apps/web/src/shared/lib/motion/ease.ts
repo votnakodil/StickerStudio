@@ -61,3 +61,10 @@ export const SPRING_GLIDE = {
   damping: 50,
   mass: 0.5,
 } as const;
+
+export const SPRING_PHOTO_ARRIVAL = {
+  ...SPRING_EDITOR_REVEAL,
+  stiffness: 900,
+  damping: 29,
+  mass: 0.55,
+} as const;

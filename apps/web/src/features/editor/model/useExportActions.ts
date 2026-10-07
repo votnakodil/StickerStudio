@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAnimationControls, useReducedMotion } from 'motion/react'
-import { exportStickerBlob, type StickerCanvas } from '@sticker-studio/editor'
+import { captureStickerImagePreview, captureStickerDesign, exportStickerBlob, type StickerCanvas } from '@sticker-studio/editor'
 
 import { type ButtonState } from '@/shared/ui/StatefulButton/StatefulButton'
 
@@ -8,18 +8,22 @@ import { EASE_OUT, SPRING_EDITOR_REVEAL } from '@/shared/lib/motion'
 import { downloadSticker, stickerFilename } from '@/features/editor/lib/downloadSticker'
 import { loadMyLibrary, saveToMyLibrary, useLibraryStore } from '@/features/library'
 import { findStickerById } from '@/features/library'
+import { isCustomPhotoId } from '@/features/custom-photo'
 
 export const LIBRARY_PROMPT_SECONDS = 7
 
 export type ExportActionsOptions = {
   canvas: StickerCanvas | null
+  stickerId?: string
   stickerName?: string
   active?: boolean
   onFinish?: () => void
 }
 
 export function useExportActions(options: ExportActionsOptions) {
-  const { canvas, stickerName, active = true, onFinish } = options
+  const { canvas, stickerId, stickerName, active = true, onFinish } = options
+  const templateReference = stickerId ?? stickerName
+  const templateId = findStickerById(templateReference)?.id ?? (isCustomPhotoId(templateReference) ? templateReference : undefined)
   const [pngState, setPngState] = useState<ButtonState>('idle')
   const [libraryState, setLibraryState] = useState<ButtonState>('idle')
   const [alreadySaved, setAlreadySaved] = useState(false)
@@ -105,8 +109,7 @@ export function useExportActions(options: ExportActionsOptions) {
       setPngState('success')
       await loadMyLibrary()
       if (generation.current !== version) return
-      const template = findStickerById(stickerName)
-      if (template && useLibraryStore.getState().templateIds.includes(template.id)) {
+      if (templateId && useLibraryStore.getState().templateIds.includes(templateId)) {
         setAlreadySaved(true)
         setLibraryState('idle')
         setDeadline(null)
@@ -120,13 +123,14 @@ export function useExportActions(options: ExportActionsOptions) {
     }
   }
   const accept = async () => {
-    const template = findStickerById(stickerName)
-    if (!template || acceptingRef.current) return
+    if (!canvas || !templateId || acceptingRef.current) return
     acceptingRef.current = true
     const version = generation.current
     setDeadline(null)
     setError('')
     try {
+      const design = captureStickerDesign(canvas)
+      const preview = captureStickerImagePreview(canvas)
       await loadMyLibrary()
       if (generation.current !== version) return
       const showAlreadySaved = () => {
@@ -134,13 +138,9 @@ export function useExportActions(options: ExportActionsOptions) {
         setAlreadySaved(true)
         emphasizeAlreadySaved()
       }
-      if (useLibraryStore.getState().templateIds.includes(template.id)) {
-        showAlreadySaved()
-        return
-      }
       setLibraryState('loading')
       const [result] = await Promise.all([
-        saveToMyLibrary(template.id),
+        saveToMyLibrary(templateId, design, preview),
         new Promise<void>((resolve) => window.setTimeout(resolve, 700)),
       ])
       if (generation.current === version) {
@@ -162,7 +162,6 @@ export function useExportActions(options: ExportActionsOptions) {
     return () => window.clearTimeout(timer)
   }, [libraryState, dismiss])
   const saveLibrary = async () => {
-    if (alreadySaved) { emphasizeAlreadySaved(); return }
     if (!canvas || prompting || libraryState === 'success' || acceptingRef.current || savingRef.current) return
     await accept()
   }

@@ -1,0 +1,4 @@
+.number { display: inline-flex; vertical-align: bottom; font-variant-numeric: tabular-nums; min-width: 1ch; }
+.place { position: relative; display: inline-block; overflow: hidden; flex-shrink: 0; width: 1ch; }
+.measure { visibility: hidden; }
+.digit { position: absolute; inset: 0; text-align: center; }

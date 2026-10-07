@@ -1,4 +1,4 @@
-import { palette } from '@sticker-studio/theme'
+import { createDefaultStickerTextLayers } from '@sticker-studio/editor'
 import anton from '@/shared/assets/stickers/anton.png'
 import nastya from '@/shared/assets/stickers/nastya.png'
 import max from '@/shared/assets/stickers/max.png'
@@ -24,20 +24,7 @@ export interface StickerTemplate {
 function defaultPreset(name: string, imageTop = 50, imageSize = 1024, imageLeft = (1024 - imageSize) / 2): StickerCanvasPreset {
   return {
     image: { left: imageLeft, top: imageTop, width: imageSize, height: imageSize, opacity: 1 },
-    texts: [
-      {
-        text: name.toUpperCase(), left: 0, top: -7, width: 1010, frameHeight: 186.45,
-        fontFamily: 'SF Pro Text', fontSize: 165, fontWeight: 900, fill: palette.white,
-        textAlign: 'center', verticalAlign: 'middle', autoSize: true,
-        stroke: { enabled: true, width: 7, color: palette.ink, opacity: 1 },
-      },
-      {
-        text: 'TEXT', left: 0, top: 880, width: 1010, frameHeight: 113,
-        fontFamily: 'SF Pro Text', fontSize: 100, fontWeight: 900, fill: palette.white,
-        textAlign: 'center', verticalAlign: 'middle', autoSize: true,
-        stroke: { enabled: true, width: 7, color: palette.ink, opacity: 1 },
-      },
-    ],
+    texts: createDefaultStickerTextLayers(name.toUpperCase(), 'TEXT'),
   }
 }
 

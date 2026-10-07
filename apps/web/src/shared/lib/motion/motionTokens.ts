@@ -1,10 +1,11 @@
 export const motionTokens = {
-    duration: { instant: 0.12, fast: 0.16, exit: 0.18, standard: 0.24, considered: 0.48 },
+    duration: { instant: 0.12, fast: 0.16, exit: 0.18, standard: 0.24, considered: 0.48, processingDissolve: 0.55, stickerCurl: 0.8, stickerShine: 0.35, photoTravel: 0.72, photoGlowExpansion: 1.25 },
     ease: {
         enter: [0.16, 1, 0.3, 1],
         exit: [0.7, 0, 0.84, 0],
         standard: [0.22, 1, 0.36, 1],
         inOut: [0.65, 0, 0.35, 1],
+        photoTravel: [0.25, 0.1, 0.25, 1],
     },
     spring: {
         responsive: { type: "spring", stiffness: 520, damping: 38 },

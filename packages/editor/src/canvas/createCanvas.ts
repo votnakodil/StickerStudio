@@ -1,8 +1,11 @@
-import { Canvas, FabricImage, Textbox, Point } from 'fabric'
+import { installCanvasPanning } from './canvasPanning'
+import { Canvas, FabricImage, Textbox } from 'fabric'
 import type { StickerCanvas, StickerTextbox, EditorTool } from '../types'
 import { palette } from '@sticker-studio/theme'
 import { serializeCanvas, saveHistory } from '../history/history'
 import { configureStickerImage } from '../images/imageControls'
+import { installImageEraser, refreshEraserCursor } from '../images/imageEraser'
+import { installQuickSelection, clearQuickSelection } from '../images/quickSelection'
 import { relayoutStickerText } from '../text/textLayout'
 
 export function createStickerCanvas(
@@ -30,6 +33,7 @@ export function createStickerCanvas(
   canvas.editorTool =
     'move'
   canvas.stickerTextColor = palette.white
+  canvas.eraserSize = 25
 
   canvas.history = [
     serializeCanvas(
@@ -38,6 +42,11 @@ export function createStickerCanvas(
   ]
 
   canvas.historyIndex = 0
+
+  const drawControls = canvas.drawControls.bind(canvas)
+  canvas.drawControls = (context) => {
+    if (canvas.editorTool !== 'quick-selection') drawControls(context)
+  }
 
   const styleSelection = () => {
     const active = canvas.getActiveObject()
@@ -97,115 +106,10 @@ export function createStickerCanvas(
     },
   )
 
-  let isPanning = false
-  let lastPointerX = 0
-  let lastPointerY = 0
+  installCanvasPanning(canvas)
 
-  canvas.on(
-    'mouse:down',
-    (event) => {
-      const pointerEvent =
-        event.e as MouseEvent
-
-      const shouldPan =
-        canvas.editorTool ===
-          'hand' ||
-        pointerEvent.altKey
-
-      if (!shouldPan) {
-        return
-      }
-
-      isPanning = true
-
-      lastPointerX =
-        pointerEvent.clientX
-
-      lastPointerY =
-        pointerEvent.clientY
-
-      canvas.selection =
-        false
-
-      canvas.defaultCursor =
-        'grabbing'
-
-      canvas.setCursor(
-        'grabbing',
-      )
-
-      pointerEvent.preventDefault()
-    },
-  )
-
-  canvas.on(
-    'mouse:move',
-    (event) => {
-      if (!isPanning) {
-        return
-      }
-
-      const pointerEvent =
-        event.e as MouseEvent
-
-      const deltaX =
-        pointerEvent.clientX -
-        lastPointerX
-
-      const deltaY =
-        pointerEvent.clientY -
-        lastPointerY
-
-      canvas.relativePan(
-        new Point(
-          deltaX,
-          deltaY,
-        ),
-      )
-
-      lastPointerX =
-        pointerEvent.clientX
-
-      lastPointerY =
-        pointerEvent.clientY
-
-      pointerEvent.preventDefault()
-    },
-  )
-
-  canvas.on(
-    'mouse:up',
-    () => {
-      if (!isPanning) {
-        return
-      }
-
-      isPanning = false
-
-      if (
-        canvas.editorTool ===
-        'hand'
-      ) {
-        canvas.defaultCursor =
-          'grab'
-
-        canvas.setCursor(
-          'grab',
-        )
-      } else {
-        canvas.selection =
-          true
-
-        canvas.defaultCursor =
-          'default'
-
-        canvas.setCursor(
-          'default',
-        )
-      }
-    },
-  )
-
+  installImageEraser(canvas)
+  installQuickSelection(canvas)
   return canvas
 }
 
@@ -215,7 +119,18 @@ export function setEditorTool(
 ) {
   canvas.editorTool = tool
 
-  if (tool === 'hand') {
+  if (tool !== 'quick-selection') clearQuickSelection(canvas)
+  if (tool === 'eraser' || tool === 'quick-selection') {
+    const selected = canvas.getActiveObject()
+    if (!(selected instanceof FabricImage)) {
+      const image = canvas.getObjects().findLast(object => object instanceof FabricImage && object.visible)
+      if (image) canvas.setActiveObject(image)
+    }
+    canvas.selection = false
+    canvas.skipTargetFind = true
+    if (tool === 'eraser') refreshEraserCursor(canvas)
+    else { canvas.defaultCursor = canvas.hoverCursor = 'crosshair'; canvas.setCursor('crosshair') }
+  } else if (tool === 'hand') {
     canvas.discardActiveObject()
 
     canvas.selection = false

@@ -53,7 +53,11 @@
 
 .layer {
   position: absolute;
-  inset: -50%;
+  left: -50%;
+  top: 50%;
+  width: 200%;
+  aspect-ratio: 1;
+  translate: 0 -50%;
   display: block;
   background: conic-gradient(var(--palette-tint010), var(--palette-tint015), var(--palette-tint006), var(--palette-tint016), var(--palette-tint017), var(--palette-tint012), var(--palette-tint010));
   animation: spin 5s linear infinite;

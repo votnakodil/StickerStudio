@@ -13,7 +13,7 @@ export function SuccessCheck({ size = 112, className, onComplete }: {
       ? window.setTimeout(() => onComplete?.(), 630) : undefined
     return () => { cancelAnimationFrame(frame); window.clearTimeout(timer) }
   }, [onComplete])
-  const style = { '--check-size': `${size}px`, '--check-y-amount': `${size * 0.35}px` } as CSSProperties
+  const style = { '--check-size': `${size}px`, '--check-y-amount': `${size * 0.35}px`, '--check-blur-from': `${size * 10 / 112}px` } as CSSProperties
   return <span className={`${styles.check} ${className ?? ''}`} data-state={visible ? 'in' : 'out'} style={style} aria-hidden="true">
     <svg viewBox="0 0 48 48" fill="none">
       <circle cx="24" cy="24" r="21" stroke="currentColor" strokeWidth="2" />

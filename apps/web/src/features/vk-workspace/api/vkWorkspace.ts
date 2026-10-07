@@ -8,9 +8,11 @@ export type VkPack = {
 export type VkFailureKind = 'auth_required' | 'retryable' | 'unknown';
 export class VkServiceError extends Error {
     readonly kind: VkFailureKind;
-    constructor(kind: VkFailureKind, message: string) {
+    readonly httpStatus?: number;
+    constructor(kind: VkFailureKind, message: string, httpStatus?: number) {
         super(message);
         this.kind = kind;
+        this.httpStatus = httpStatus;
     }
 }
 type PacksResponse = {
@@ -37,7 +39,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         } : {};
         const kind: VkFailureKind = payload.kind === 'unknown' || payload.kind === 'auth_required'
             ? payload.kind : response.status === 401 ? 'auth_required' : 'retryable';
-        throw new VkServiceError(kind, payload.error ?? `VK service returned HTTP ${response.status}.`);
+        throw new VkServiceError(kind, payload.error ?? `VK service returned HTTP ${response.status}.`, response.status);
     }
     return result as T;
 }

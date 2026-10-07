@@ -8,7 +8,7 @@ import { ExportToggleIcon } from '@/features/editor/components/ExportPanel/Expor
 import { ExportActions } from '@/features/editor/components/ExportPanel/ExportActions'
 import styles from './ExportPanel.module.css'
 
-export function ExportPanel({ canvas, stickerName }: { canvas: StickerCanvas | null; stickerName?: string }) {
+export function ExportPanel({ canvas, stickerId, stickerName }: { canvas: StickerCanvas | null; stickerId?: string; stickerName?: string }) {
   const [open, setOpen] = useState(false)
   const reduceMotion = useReducedMotion()
   const panelAnimation = useAnimationControls()
@@ -64,7 +64,7 @@ export function ExportPanel({ canvas, stickerName }: { canvas: StickerCanvas | n
       animate={{ height: open ? 'auto' : 0 }}
       transition={transition} inert={!open} aria-hidden={!open}>
       <div className={styles.content}>
-        <ExportActions canvas={canvas} stickerName={stickerName} active={open} onFinish={close} />
+        <ExportActions canvas={canvas} stickerId={stickerId} stickerName={stickerName} active={open} onFinish={close} />
       </div>
     </motion.div>
   </motion.section>

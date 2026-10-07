@@ -1,3 +1,4 @@
+import { configureTextFrameGeometry } from './textFrameGeometry'
 import { getStickerTextAutoSize } from './textSettings'
 import type { StickerTextbox, StickerCanvas } from '../types'
 import { getTextFrameHeight, getTextContentHeight, fitStickerText, fitTextFrameAfterWidthChange, relayoutStickerText, renderOverflowIndicator, isTextOverflowing, showAllText } from './textLayout'
@@ -53,6 +54,7 @@ export function configureStickerText(
   text.stickerVerticalAlign ??= 'top'
   text.stickerStroke ??= { ...DEFAULT_STROKE }
   applyTextStroke(text)
+  configureTextFrameGeometry(text)
   if (!text.stickerTopOffsetInstalled) {
     const originalTopOffset = text._getTopOffset
     text._getTopOffset = () => {

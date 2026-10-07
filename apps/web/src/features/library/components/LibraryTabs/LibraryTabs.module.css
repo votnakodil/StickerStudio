@@ -52,3 +52,15 @@
     border-color: var(--palette-neutral029);
   }
 }
+
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+@media (max-width: 479px) {
+  .toolbar { gap: 8px; }
+  .toolbar .trigger { padding-inline: 12px; font-size: 12px; }
+}
+
+.viewTrigger { width: 44px; }
+.toolbar .viewTrigger { padding-inline: 0; }
+
+.collections { display: grid; margin-top: 28px; }
+.collection { grid-area: 1 / 1; min-width: 0; }

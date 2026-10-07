@@ -3,3 +3,8 @@ export { CanvasToolbar } from './components/CanvasToolbar/CanvasToolbar'
 export { LayersPanel } from './components/LayersPanel/LayersPanel'
 export { InspectorPanel } from './components/InspectorPanel/InspectorPanel'
 export { useEditorStore } from './model/editorStore'
+
+export { loadEditorFonts } from './lib/editorFonts'
+export { useStickerArtworkSnapshot } from './model/useStickerArtworkSnapshot'
+
+export { flushSavedStickerAutosave } from './model/savedStickerAutosave'

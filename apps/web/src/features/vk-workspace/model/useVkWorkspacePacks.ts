@@ -8,6 +8,7 @@ import { vkWorkspace, VkServiceError, type VkPack } from '@/features/vk-workspac
 type NameCheck = { name: string; slug: string; available: boolean }
 
 import { isValidPackName } from './packName'
+import { loadVkWorkspacePacks } from './loadVkWorkspacePacks'
 
 
 export type VkWorkspacePacksOptions = {
@@ -47,7 +48,7 @@ export function useVkWorkspacePacks(options: VkWorkspacePacksOptions) {
   useEffect(() => { currentName.current = name }, [name])
   useEffect(() => {
     const controller = new AbortController()
-    Promise.resolve().then(() => controller.signal.aborted ? undefined : vkWorkspace.refreshPacks(controller.signal)).then(next => {
+    Promise.resolve().then(() => controller.signal.aborted ? undefined : loadVkWorkspacePacks(controller.signal)).then(next => {
       if (controller.signal.aborted || !next) return
       setPacks(next)
       setSelectedId(previous => next.some(pack => pack.id === previous) ? previous : '')

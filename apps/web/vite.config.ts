@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   server: {
     proxy: {
+      '/api/cutout': { target: 'http://127.0.0.1:4190' },
       '/api/vk': {
         target: 'http://127.0.0.1:4177',
         changeOrigin: true,

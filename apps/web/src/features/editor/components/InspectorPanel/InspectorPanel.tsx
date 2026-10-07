@@ -1,9 +1,8 @@
 import { palette } from '@sticker-studio/theme'
 import { useEffect, useRef, useState } from 'react'
 import { motion, useAnimationControls, useReducedMotion } from 'motion/react'
-import { SPRING_EDITOR_REVEAL } from '@/shared/lib/motion'
 import { FabricImage, Textbox } from 'fabric'
-import { IconPhoto, IconTextformat } from 'symbols-react'
+import { IconPhoto, IconTextformat, IconEraserFill, IconInsetFilledCircleDashed } from 'symbols-react'
 import { HexColorPicker } from 'react-colorful'
 import { getStickerTextAutoSize, getStickerCanvasBackground, getStickerFontWeights, normalizeStickerFontWeight, getStickerStroke, subscribeStickerCanvasBackground, updateStickerCanvasBackground, updateStickerImageOpacity, updateStickerStroke, updateStickerTextStyle, type StickerCanvas, type StickerStrokeSettings } from '@sticker-studio/editor'
 import { useEditorStore } from '@/features/editor/model/editorStore'
@@ -15,6 +14,8 @@ import { NumberInput } from '@/shared/ui/NumberInput/NumberInput'
 import { Switch } from '@/shared/ui/Switch/Switch'
 import { ShakeFeedback } from '@/shared/ui/ShakeFeedback/ShakeFeedback'
 import { FloatingPopover } from '@/shared/ui/FloatingPopover/FloatingPopover'
+import { QuickSelectionPanel } from '../QuickSelectionPanel/QuickSelectionPanel'
+import { ImageRoundness } from '../ImageRoundness/ImageRoundness'
 import styles from './InspectorPanel.module.css'
 
 const fonts = ['Times New Roman', 'SF Pro Text', 'Arial', 'Helvetica', 'Georgia', 'Courier New', 'Impact']
@@ -136,7 +137,13 @@ function StrokeSection({ canvas, object }: { canvas: StickerCanvas; object: Text
             </div>
           </div>
           <div>
-            <div className={styles.strokeFieldHeading}><span>Opacity</span><output>{Math.round(stroke.opacity * 100)}%</output></div>
+            <div className={styles.strokeFieldHeading}>
+              <span>Opacity</span>
+              <label className={`${styles.sizeField} ${styles.strokeWidthInput}`}>
+                <NumberInput min={0} max={100} value={Math.round(stroke.opacity * 100)} ariaLabel="Stroke opacity percentage" onValueChange={(opacity) => changeStroke({ opacity: opacity / 100 })} />
+                <span>%</span>
+              </label>
+            </div>
             <BubbleSlider className={styles.strokeSlider} showBubble={false} min={0} max={100} step={1} value={Math.round(stroke.opacity * 100)} aria-label="Stroke opacity" formatValueText={(value) => `${value}%`} onValueChange={(opacity) => changeStroke({ opacity: opacity / 100 })} />
           </div>
         </div>
@@ -217,6 +224,11 @@ export function InspectorPanel() {
     })
   }
   const canvas = useEditorStore((state) => state.canvas)
+  const activeTool = useEditorStore(state => state.activeTool)
+  const eraserSize = useEditorStore(state => state.eraserSize)
+  const setEraserSize = useEditorStore(state => state.setEraserSize)
+  const erasing = activeTool === 'eraser'
+  const quickSelecting = activeTool === 'quick-selection'
   const [, setRevision] = useState(0)
   const [customOpen, setCustomOpen] = useState(false)
   const [customColor, setCustomColor] = useState<string>(palette.white)
@@ -274,23 +286,33 @@ export function InspectorPanel() {
   const verticalAlignment = (text as (Textbox & { stickerVerticalAlign?: string }) | null)?.stickerVerticalAlign ?? 'top'
 
   return (
-    <motion.aside className={styles.panel} aria-label="Layer settings"
-      initial={reduceMotion ? false : { x: '130%' }}
-      animate={{ x: '0%' }}
-      transition={reduceMotion ? { duration: 0 } : SPRING_EDITOR_REVEAL}
-    >
+    <aside className={styles.panel} aria-label="Layer settings">
       <div className={styles.surface}>
         <header className={styles.header}>
           <span className={styles.headerIcon} aria-hidden="true">
-            {text ? <IconTextformat width={18} height={18} fill="currentColor" /> : image ? <IconPhoto width={18} height={18} fill="currentColor" /> : <span className={styles.canvasHeaderIcon} />}
+            {quickSelecting ? <IconInsetFilledCircleDashed width={18} height={18} fill="currentColor" /> : erasing ? <IconEraserFill width={18} height={18} fill="currentColor" /> : text ? <IconTextformat width={18} height={18} fill="currentColor" /> : image ? <IconPhoto width={18} height={18} fill="currentColor" /> : <span className={styles.canvasHeaderIcon} />}
           </span>
           <div className={styles.headerLabels}>
-            <h2>{text ? 'Text' : image ? 'Image' : 'Canvas'}</h2>
-            <span>{text ? text.text || 'Empty text' : image ? 'Sticker image' : `${canvas.getWidth()} × ${canvas.getHeight()} px`}</span>
+            <h2>{quickSelecting ? 'Quick Selection' : erasing ? 'Eraser' : text ? 'Text' : image ? 'Image' : 'Canvas'}</h2>
+            <span>{quickSelecting ? 'Select an image area' : erasing ? 'Drag on the image to erase' : text ? text.text || 'Empty text' : image ? 'Sticker image' : `${canvas.getWidth()} × ${canvas.getHeight()} px`}</span>
           </div>
         </header>
 
-        {text ? (
+        {quickSelecting ? <QuickSelectionPanel canvas={canvas} /> : erasing ? (
+          <div className={styles.content}>
+            <section className={styles.section} aria-label="Eraser settings">
+              <div className={styles.strokeFieldHeading}>
+                <span>Brush size</span>
+                <label className={`${styles.sizeField} ${styles.strokeWidthInput}`}>
+                  <NumberInput min={4} max={120} value={eraserSize} ariaLabel="Eraser size" onValueChange={setEraserSize} />
+                  <span>px</span>
+                </label>
+              </div>
+              <BubbleSlider className={styles.strokeSlider} showBubble={false} aria-label="Eraser size" value={eraserSize} min={4} max={120} step={1} formatValueText={value => `${value} pixels`} onValueChange={setEraserSize} />
+              {!image && <p>Select an image to erase.</p>}
+            </section>
+          </div>
+        ) : text ? (
           <div className={styles.content}>
             <section className={`${styles.section} ${styles.typographySection}`} aria-label="Font settings">
               <h3>Typography</h3>
@@ -411,13 +433,20 @@ export function InspectorPanel() {
           <div className={styles.content}>
             <section className={styles.section} aria-label="Image settings">
               <h3>Image</h3>
-              <div className={styles.imagePreview}><img src={image.getSrc()} alt="Selected sticker" /></div>
+              <div className={styles.imagePreview}><img src={image.getSrc(true)} alt="Selected sticker" /></div>
               <p className={styles.dimensions}>{Math.round(image.getScaledWidth())} × {Math.round(image.getScaledHeight())} px</p>
             </section>
             <section className={styles.section} aria-label="Image opacity">
-              <div className={styles.sectionHeading}><h3>Opacity</h3><output>{Math.round(image.opacity * 100)}%</output></div>
+              <div className={styles.sectionHeading}>
+                <h3>Opacity</h3>
+                <label className={`${styles.sizeField} ${styles.strokeWidthInput}`}>
+                  <NumberInput min={0} max={100} value={Math.round(image.opacity * 100)} ariaLabel="Image opacity percentage" onValueChange={(value) => updateStickerImageOpacity(canvas, image, value / 100)} />
+                  <span>%</span>
+                </label>
+              </div>
               <BubbleSlider className={styles.opacitySlider} showBubble={false} min={0} max={100} step={1} value={Math.round(image.opacity * 100)} aria-label="Image opacity" formatValueText={(value) => `${value}%`} onValueChange={(value) => updateStickerImageOpacity(canvas, image, value / 100)} />
             </section>
+            <ImageRoundness />
             <StrokeSection canvas={canvas} object={image} />
           </div>
         ) : (
@@ -426,6 +455,6 @@ export function InspectorPanel() {
           </div>
         )}
       </div>
-    </motion.aside>
+    </aside>
   )
 }

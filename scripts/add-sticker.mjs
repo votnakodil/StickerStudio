@@ -841,7 +841,7 @@ class MessengerEvents {
         if (event?.type !== 'histDlgState' || event?.eventData?.sn !== botChatId) {
           continue;
         }
-        const found = predicate(event.eventData);
+        const found = await predicate(event.eventData);
         if (found) return found;
       }
     }
@@ -859,6 +859,13 @@ async function getBotHistory(aimsid, patchVersion, fromMsgId = '-1', count = -1)
     patchVersion
   }, 20000);
   return Array.isArray(results?.messages) ? results.messages : [];
+}
+
+async function getBotMessage(aimsid, patchVersion, msgId) {
+  const id = String(msgId);
+  if (!/^[1-9]\d*$/.test(id)) return [];
+  // getHistory excludes fromMsgId. Use integer strings to preserve 64-bit IDs.
+  return getBotHistory(aimsid, patchVersion, String(BigInt(id) - 1n), 1);
 }
 
 class NotAuthorError extends Error {
@@ -925,6 +932,28 @@ async function startNewPack(events, aimsid, email) {
   );
 }
 
+/** Bot edits can update the original menu while newer pack-list messages remain last. */
+async function waitForPackAction(events, aimsid, menuState, callbackData) {
+  return events.waitForBot(async state => {
+    if (typeof state.patchVersion !== 'string' || state.patchVersion === menuState.patchVersion) return null;
+    const findAction = messages => messages?.find(message => message.msgId && botButton(message, callbackData));
+    const eventAction = findAction(state.messages);
+    if (eventAction) return eventAction;
+    // Use the version from before the callback to include edits in the delta.
+    const historyAction = findAction(await getBotHistory(aimsid, menuState.patchVersion));
+    if (historyAction) return historyAction;
+    // The current last message may be a pack list, not the edited keyboard.
+    const menuAction = findAction(await getBotMessage(
+      aimsid, menuState.patchVersion, menuState.message.msgId
+    ));
+    if (menuAction) return menuAction;
+    if (typeof state.lastMsgId === 'string' && state.lastMsgId !== String(menuState.message.msgId)) {
+      return findAction(await getBotMessage(aimsid, menuState.patchVersion, state.lastMsgId)) ?? null;
+    }
+    return null;
+  }, `меню редактирования пака: ${callbackData}`);
+}
+
 async function startPackEditAction(events, aimsid, email, callbackData, prompt) {
   if (!['packname', 'packlink'].includes(callbackData)) {
     throw new Error('Неизвестное действие Stickers Bot.');
@@ -936,24 +965,7 @@ async function startPackEditAction(events, aimsid, email, callbackData, prompt) 
     callbackData: 'changepack'
   }, 20080);
 
-  const editState = await events.waitForBot(
-    state => typeof state.patchVersion === 'string' &&
-      state.patchVersion !== menuState.patchVersion &&
-      typeof state.lastMsgId === 'string' && state,
-    'список действий с паком'
-  );
-  const history = await getBotHistory(aimsid, menuState.patchVersion);
-  let action = editState.messages?.find(message => botButton(message, callbackData)) ||
-    history.find(message => botButton(message, callbackData));
-  if (!action) {
-    const latest = await getBotHistory(
-      aimsid, editState.patchVersion, editState.lastMsgId, 1
-    );
-    action = latest.find(message => botButton(message, callbackData));
-  }
-  if (!action?.msgId) {
-    throw new Error(`Кнопка ${callbackData} не найдена в истории Stickers Bot.`);
-  }
+  const action = await waitForPackAction(events, aimsid, menuState, callbackData);
   await rapiRequest('getBotCallbackAnswer', aimsid, {
     chatId: botChatId,
     msgId: String(action.msgId),
@@ -1006,26 +1018,7 @@ async function choosePack(events, aimsid, email, referenceURL) {
     callbackData: 'changepack'
   }, 20080);
 
-  const editState = await events.waitForBot(
-    state => typeof state.patchVersion === 'string' &&
-      state.patchVersion !== menuState.patchVersion &&
-      typeof state.lastMsgId === 'string' && state,
-    'меню редактирования пака'
-  );
-  // В HAR браузер запрашивает новый ответ бота со старой patchVersion.
-  // Новая patchVersion возвращает пустую дельту и скрывает кнопку Add.
-  const history = await getBotHistory(aimsid, menuState.patchVersion);
-  let addMessage = editState.messages?.find(message => botButton(message, 'add')) ||
-    history.find(message => botButton(message, 'add'));
-  if (!addMessage) {
-    const latest = await getBotHistory(
-      aimsid, editState.patchVersion, editState.lastMsgId, 1
-    );
-    addMessage = latest.find(message => botButton(message, 'add'));
-  }
-  if (!addMessage?.msgId) {
-    throw new Error('Кнопка Add не найдена в актуальной истории Stickers Bot.');
-  }
+  const addMessage = await waitForPackAction(events, aimsid, menuState, 'add');
   await rapiRequest('getBotCallbackAnswer', aimsid, {
     chatId: botChatId,
     msgId: String(addMessage.msgId),

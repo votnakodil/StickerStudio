@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace @sticker-studio/web",
+    "dev": "node scripts/dev.mjs",
     "dev:vk": "node scripts/sticker-test-server.mjs",
     "build": "npm run check:colors && npm run build --workspace @sticker-studio/web",
     "lint": "npm run lint --workspace @sticker-studio/web",
@@ -16,7 +16,8 @@
     "test": "node --import ./scripts/register-typescript.mjs --test packages/editor/tests/*.test.mjs apps/web/tests/*.test.mjs scripts/*.test.mjs",
     "typecheck": "tsc -b apps/web && tsc -p packages/editor/tsconfig.json",
     "check:architecture": "node scripts/check-architecture.mjs",
-    "check": "npm run check:architecture && npm run typecheck && npm run lint && npm test && npm run build"
+    "check": "npm run check:architecture && npm run typecheck && npm run lint && npm test && npm run build",
+    "dev:cutout": "node scripts/cutout-tunnel.mjs"
   },
   "allowScripts": {
     "canvas@3.2.3": true,

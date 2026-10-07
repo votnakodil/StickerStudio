@@ -1,0 +1,11 @@
+.actions { display: grid; gap: 10px; }
+.deselect { background: var(--palette-neutral030); border-color: var(--palette-white-alpha16); color: var(--palette-neutral090); }
+.deselect:disabled { opacity: 1; background: var(--palette-neutral027); border-color: var(--palette-white-alpha10); color: var(--palette-neutral065); }
+.hint { margin: 2px 0 0; color: var(--palette-neutral060); font-size: 11px; line-height: 1.5; }
+@media (prefers-color-scheme: light) {
+  .deselect { background: var(--palette-neutral094); border-color: var(--palette-overlay-base09-alpha17); color: var(--palette-neutral015); }
+  .deselect:disabled { background: var(--palette-neutral087); border-color: var(--palette-overlay-base09-alpha12); color: var(--palette-neutral045); }
+  .hint { color: var(--palette-neutral045); }
+}
+
+.lockedChoice.lockedChoice { opacity: 1; }

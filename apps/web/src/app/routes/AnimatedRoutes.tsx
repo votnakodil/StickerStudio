@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
+import { useHeroArtworkTransition } from '@/shared/ui/HeroArtworkTransition/useHeroArtworkTransition'
 import { LayoutGroup } from 'motion/react'
 import { Navigate, Route, Routes, useLocation, type Location } from 'react-router-dom'
 import { EditorPage } from '@/pages/EditorPage/EditorPage'
@@ -27,6 +28,7 @@ function RouteLayer({ location, leaving }: { location: Location; leaving: boolea
 
 export function AnimatedRoutes() {
   const location = useLocation()
+  const { flight } = useHeroArtworkTransition()
   const [pages, setPages] = useState<{ current: Location; previous: Location | null }>(() => ({ current: location, previous: null }))
 
   if (pages.current.pathname !== location.pathname) {
@@ -35,13 +37,14 @@ export function AnimatedRoutes() {
 
   const currentPath = pages.current.pathname
   const hasPrevious = Boolean(pages.previous)
+  const openingCard = flight?.direction === 'open' && !flight.settled
   useEffect(() => {
-    if (!hasPrevious) return
+    if (!hasPrevious || openingCard) return
     const timeout = window.setTimeout(() => {
       setPages((current) => current.current.pathname === currentPath ? { ...current, previous: null } : current)
     }, 850)
     return () => window.clearTimeout(timeout)
-  }, [currentPath, hasPrevious])
+  }, [currentPath, hasPrevious, openingCard])
 
   return (
     <LayoutGroup id="sticker-pages">
