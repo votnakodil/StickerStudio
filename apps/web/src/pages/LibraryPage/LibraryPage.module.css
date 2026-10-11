@@ -41,3 +41,5 @@
     background: var(--palette-neutral003);
   }
 }
+
+.account { float: right; }

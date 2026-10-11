@@ -64,6 +64,7 @@ export function createCutoutApi(base = '/api/cutout'): CutoutApi {
       throw new CutoutServiceError(0, 'Connection lost. Your photo will resume automatically.')
     }
     if (!response.ok) {
+      if (response.status === 401 && typeof window !== 'undefined') window.dispatchEvent(new Event('sticker-studio:auth-required'))
       const body: unknown = await response.json().catch(() => null)
       const detail = responseError(body, response.status)
       throw new CutoutServiceError(response.status, detail, retryAfter(response.headers.get('Retry-After')))

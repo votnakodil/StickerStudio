@@ -161,3 +161,25 @@ test('newly downloaded results are distinguished from retained results for the o
   await runPhotoCutout('custom-test', restored)
   assert.deepEqual(ready, ['download', 'storage'])
 })
+
+
+test('cutout authentication failure tells the app to return to sign in', async () => {
+  const originalFetch = globalThis.fetch
+  const originalWindow = globalThis.window
+  const browser = new EventTarget()
+  globalThis.window = browser
+  globalThis.fetch = async (_url, init) => {
+    assert.equal(init.credentials, 'same-origin')
+    return Response.json({ detail: 'Authentication required.' }, { status: 401 })
+  }
+  let invalidations = 0
+  browser.addEventListener('sticker-studio:auth-required', () => { invalidations++ })
+  try {
+    await assert.rejects(createCutoutApi().get('test-job'), (error) => error instanceof CutoutServiceError && error.status === 401)
+    assert.equal(invalidations, 1)
+  } finally {
+    globalThis.fetch = originalFetch
+    if (originalWindow === undefined) delete globalThis.window
+    else globalThis.window = originalWindow
+  }
+})

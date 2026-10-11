@@ -5,13 +5,14 @@ import { EmailStep } from '@/features/auth'
 import { LoginHeroCards } from '@/features/auth'
 import { OtpStep } from '@/features/auth'
 import { SuccessStep } from '@/features/auth'
-import { authService, isAllowedEmail, normalizeEmail } from '@/features/auth'
+import { authService, isAllowedEmail, normalizeEmail, useAuthSession } from '@/features/auth'
 import styles from './LoginPage.module.css'
 
 type Stage = 'email' | 'sendingCode' | 'otp' | 'verifying' | 'success'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { status: sessionStatus, refreshSession } = useAuthSession()
   const reduceMotion = useReducedMotion()
   const [stage, setStage] = useState<Stage>('email')
   const [email, setEmail] = useState('')
@@ -27,6 +28,10 @@ export function LoginPage() {
     const interval = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(interval)
   }, [stage])
+
+  useEffect(() => {
+    if (sessionStatus === 'authenticated' && stage === 'email' && !inFlight.current) navigate('/library', { replace: true })
+  }, [sessionStatus, stage, navigate])
 
   useEffect(() => {
     if (stage !== 'success') return
@@ -92,8 +97,10 @@ export function LoginPage() {
     setOtpError(null)
     try {
       const verified = await authService.verifyOtp(email, code)
-      if (verified) setStage('success')
-      else {
+      if (verified) {
+        if (!await refreshSession()) throw new Error('session')
+        setStage('success')
+      } else {
         setOtpError('That code is incorrect. Try again.')
         setStage('otp')
       }

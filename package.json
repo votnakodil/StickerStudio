@@ -16,8 +16,7 @@
     "test": "node --import ./scripts/register-typescript.mjs --test packages/editor/tests/*.test.mjs apps/web/tests/*.test.mjs scripts/*.test.mjs",
     "typecheck": "tsc -b apps/web && tsc -p packages/editor/tsconfig.json",
     "check:architecture": "node scripts/check-architecture.mjs",
-    "check": "npm run check:architecture && npm run typecheck && npm run lint && npm test && npm run build",
-    "dev:cutout": "node scripts/cutout-tunnel.mjs"
+    "check": "npm run check:architecture && npm run typecheck && npm run lint && npm test && npm run build"
   },
   "allowScripts": {
     "canvas@3.2.3": true,

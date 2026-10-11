@@ -1,0 +1,8 @@
+.menu { position: relative; }
+.menu summary { cursor: pointer; color: var(--library-text); font-size: 14px; }
+.actions { position: absolute; z-index: 5; right: 0; top: calc(100% + 8px); width: max-content; min-width: 190px; padding: 8px; border-radius: 12px; background: var(--palette-neutral088); box-shadow: 0 8px 30px var(--palette-black-alpha18); }
+.actions button { display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--library-text); text-align: left; cursor: pointer; }
+.actions button:hover, .actions button:focus-visible { background: var(--palette-neutral078); }
+.actions button:disabled { cursor: wait; opacity: .5; }
+.actions p { max-width: 220px; padding: 0 10px; color: var(--library-text); font-size: 12px; }
+@media (prefers-color-scheme: dark) { .actions { background: var(--palette-neutral008); } .actions button:hover, .actions button:focus-visible { background: var(--palette-neutral018); } }

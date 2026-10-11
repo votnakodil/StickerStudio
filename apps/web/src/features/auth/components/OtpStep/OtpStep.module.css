@@ -4,5 +4,6 @@
 .intro { margin: 12px 0 28px; color: var(--auth-muted); font-size: 15px; line-height: 1.5; }
 .intro strong { color: var(--auth-text); font-weight: 600; overflow-wrap: anywhere; }
 .otpInput { align-items: flex-start; text-align: left; }
+.otpInput > p { align-self: stretch; text-align: center; }
 .resend { display: block; margin: 20px auto 0; padding: 8px 12px; border: 0; background: none; color: var(--auth-accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .resend:disabled { color: var(--auth-muted); cursor: default; }

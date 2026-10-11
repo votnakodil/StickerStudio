@@ -6,6 +6,9 @@ export interface OtpChallenge {
 export interface AuthService {
   sendOtp(email: string): Promise<OtpChallenge>
   verifyOtp(email: string, code: string): Promise<boolean>
+  getSession(): Promise<boolean>
+  logout(): Promise<void>
+  logoutAll(): Promise<void>
 }
 
 export const normalizeEmail = (email: string) => email.trim().toLowerCase()
